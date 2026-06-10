@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Serverless Photo Sharing and Multi-Platform Image Optimization System</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <nav>
+      <div class="logo">📸 CloudSnap</div>
+      <button id="showUploadBtn" class="nav-btn">Upload Photo</button>
+    </nav>
+
+    <div class="hero-content">
+      <p class="badge">AWS Serverless Capstone Project</p>
+      <h1>Serverless Photo Sharing and Multi-Platform Image Optimization System</h1>
+      <p>
+        Upload one image and automatically resize it for Facebook, Instagram,
+        LinkedIn, and website sharing using AWS serverless services.
+      </p>
+      <button id="startUploadBtn" class="primary-btn">Upload Image</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="upload" class="card upload-card hidden">
+      <button id="closeUploadBtn" class="close-btn" aria-label="Close upload panel">✕</button>
+      <h2>Upload Your Image</h2>
+      <p>Choose an image and simulate automatic resizing for multiple platforms.</p>
+
+      <div class="upload-box">
+        <input type="file" id="imageInput" accept="image/*" />
+        <label for="imageInput">Choose Image</label>
+        <span id="fileName">No file selected</span>
+      </div>
+
+      <button id="uploadBtn">Upload & Optimize</button>
+
+      <div class="status">
+        <div class="step active">1. Cognito Auth</div>
+        <div class="step">2. API Gateway</div>
+        <div class="step">3. Lambda Upload</div>
+        <div class="step">4. Step Functions</div>
+        <div class="step">5. CloudFront Link</div>
+      </div>
+    </section>
+
+    <section class="preview-section">
+      <br><br><br><br>
+      <h2>Multi-Platform Image Preview</h2><br>
+      <div class="preview-grid">
+        <div class="preview-card">
+          <h3>Original Image</h3>
+          <img id="originalPreview" src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80" alt="Original preview" />
+          <p>Stored in Amazon S3 original image bucket.</p>
+        </div>
+        <div class="preview-card">
+          <h3>Optimized Versions</h3>
+          <img id="resizedPreview" src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=500&q=60" alt="Resized preview" />
+          <p>Resized by Lambda for Facebook, Instagram, LinkedIn, and Website.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="platforms">
+      <h2>Resize Targets</h2>
+      <div class="platform-grid">
+        <div><strong>Facebook</strong><p>Optimized for social post sharing.</p></div>
+        <div><strong>Instagram</strong><p>Square format for mobile sharing.</p></div>
+        <div><strong>LinkedIn</strong><p>Professional sharing image size.</p></div>
+        <div><strong>Website</strong><p>Optimized web display version.</p></div>
+      </div>
+    </section>
+
+    <section class="workflow">
+      <h2>AWS Workflow</h2>
+      <div class="workflow-line">
+        <div>Cognito</div>
+        <span>→</span>
+        <div>API Gateway</div>
+        <span>→</span>
+        <div>Lambda</div>
+        <span>→</span>
+        <div>S3</div>
+        <span>→</span>
+        <div>Step Functions</div>
+        <span>→</span>
+        <div>CloudFront</div>
+        <span>→</span>
+        <div>SNS</div>
+      </div>
+    </section>
+
+    <section class="services">
+      <h2>AWS Services Used</h2>
+      <div class="service-grid">
+        <div><strong>Amazon Cognito</strong><p>Authenticates users before uploads.</p></div>
+        <div><strong>Amazon API Gateway</strong><p>Receives image upload requests.</p></div>
+        <div><strong>AWS Lambda</strong><p>Processes and resizes images automatically.</p></div>
+        <div><strong>Amazon S3</strong><p>Stores original and optimized images.</p></div>
+        <div><strong>AWS Step Functions</strong><p>Orchestrates multi-platform image resizing.</p></div>
+        <div><strong>Amazon CloudFront</strong><p>Delivers optimized images globally.</p></div>
+        <div><strong>Amazon SNS</strong><p>Sends email completion notifications.</p></div>
+        <div><strong>Amazon CloudWatch</strong><p>Monitors logs, errors, and performance.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Serverless Photo Sharing and Multi-Platform Image Optimization System</p>
+    <p>Project Made By: Howie B · Erik Dalland · Jean Cespendes ·Ametelwokil Omer </p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

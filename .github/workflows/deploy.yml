@@ -1,0 +1,37 @@
+name: Deploy Serverless Photo App
+
+on:
+  push:
+    branches:
+      - main  # Runs the pipeline every time you push to the main branch
+
+permissions:
+  id-token: write # Required to handshake securely via AWS OIDC
+  contents: read  # Required to let the runner read your files
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Pull code down to the temporary GitHub virtual server
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. Log in securely to AWS using your OIDC Deployment Role Role
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::337763382699:role/github-actions-deploy-role-group6
+          aws-region: us-east-1
+
+      # 3. Sync frontend code straight to your S3 hosting bucket
+      - name: Deploy Frontend to S3
+        run: |
+          aws s3 sync ./frontend s3://serverless-photo-website-group6 --delete
+
+      # 4. Zip up the backend Python code and update the Lambda function live
+      - name: Deploy Backend Lambda Function
+        run: |
+          cd backend
+          zip -r deployment_package.zip lambda_function.py
+          aws lambda update-function-code --function-name serverless-photo-app-lambda --zip-file fileb://deployment_package.zip
