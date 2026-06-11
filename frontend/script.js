@@ -82,7 +82,9 @@ async function uploadImage(file) {
         const s3Upload = await fetch(s3PresignedUrl, {
             method: 'PUT',
             headers: {
-                'Content-Type' : file.type
+                'Content-Type' : file.type,
+                'x-amz-server-side-encryption': 'aws:kms',
+                'x-amz-server-side-encryption-aws-kms-key-id': 'arn:aws:kms:us-east-1:337763382699:key/photo-sharing-app-key'
             },
             body: file // Uploading the raw file object directly
         });
