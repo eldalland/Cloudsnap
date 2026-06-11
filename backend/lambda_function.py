@@ -2,6 +2,7 @@ import json
 import os
 import boto3
 from botocore.exceptions import ClientError
+from botocore.config import Config
 
 def lambda_handler(event, context):
     # 1. Grab the bucket name from environment variables
@@ -22,7 +23,7 @@ def lambda_handler(event, context):
         return create_response(400, {"error": "Missing fileName or fileType"})
 
     # 3. Initialize the S3 Client
-    s3_client = boto3.client('s3', region_name='us-east-1',config=Config(signature_version='s3v4') # Ensure region matches your architecture
+    s3_client = boto3.client('s3', region_name='us-east-1',config=Config(signature_version='s3v4')) # Ensure region matches your architecture
     
     # Organize uploads into a specific folder prefix
     object_key = f"uploads/{file_name}"
