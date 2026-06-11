@@ -38,7 +38,7 @@ def lambda_handler(event, context):
                 'Key': object_key,
                 'ContentType': file_type,
                 'ServerSideEncryption': 'aws:kms',
-                'SSEKMSKeyId': 'arn:aws:kms:us-east-1:337763382699:key/photo-sharing-app-key'
+                'SSEKMSKeyId': 'arn:aws:kms:us-east-1:337763382699:key/2a0566eb-80cb-4a5b-be8c-bdd6abfe5b03'
             },
             ExpiresIn=300
         )
