@@ -84,7 +84,7 @@ async function uploadImage(file) {
             headers: {
                 'Content-Type' : file.type,
                 'x-amz-server-side-encryption': 'aws:kms',
-                'x-amz-server-side-encryption-aws-kms-key-id': 'arn:aws:kms:us-east-1:337763382699:key/photo-sharing-app-key'
+                'x-amz-server-side-encryption-aws-kms-key-id': 'arn:aws:kms:us-east-1:337763382699:key/arn:aws:kms:us-east-1:337763382699:key/2a0566eb-80cb-4a5b-be8c-bdd6abfe5b03'
             },
             body: file // Uploading the raw file object directly
         });
