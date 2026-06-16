@@ -35,3 +35,8 @@ jobs:
           cd backend
           zip -r deployment_package.zip lambda_function.py
           aws lambda update-function-code --function-name serverless-photo-app-lambda --zip-file fileb://deployment_package.zip
+
+      - name: Deploy Backend Image Processing Lambda Function 
+        run: |
+          zip -r deployment_package.zip image_processor.py
+          aws lambda update-function-code --function-name cloudsnap-image-processor-lambda --zip-file fileb://deployment_package.zip
