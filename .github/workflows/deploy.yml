@@ -38,5 +38,6 @@ jobs:
 
       - name: Deploy Backend Image Processing Lambda Function 
         run: |
+          cd backend
           zip -r deployment_package.zip image_processor.py
           aws lambda update-function-code --function-name cloudsnap-image-processor-lambda --zip-file fileb://deployment_package.zip
