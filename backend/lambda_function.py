@@ -16,6 +16,7 @@ def lambda_handler(event, context):
         body = json.loads(event.get('body', '{}'))
         file_name = body.get('fileName')
         file_type = body.get('fileType') # e.g., 'image/jpeg' or 'image/png'
+        username = body.get('user_id')
     except Exception as e:
         return create_response(400, {"error": "Invalid request body"})
 
@@ -37,6 +38,7 @@ def lambda_handler(event, context):
                 'Bucket': bucket_name,
                 'Key': object_key,
                 'ContentType': file_type,
+                'Metadata': {'user_id': username},
                 'ServerSideEncryption': 'aws:kms',
                 'SSEKMSKeyId': 'arn:aws:kms:us-east-1:337763382699:key/2a0566eb-80cb-4a5b-be8c-bdd6abfe5b03'
             },
@@ -48,6 +50,7 @@ def lambda_handler(event, context):
     # 5. Return just the clean string upload URL back to the website script
     return create_response(200, {
         "uploadUrl": upload_url,
+        'metadata': {'user_id': username},
         "finalKey": object_key
     })
 

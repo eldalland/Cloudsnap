@@ -1,4 +1,5 @@
 const input = document.getElementById("imageInput");
+const usernameInput = document.getElementById("usernameInput");
 const fileName = document.getElementById("fileName");
 const uploadBtn = document.getElementById("uploadBtn");
 const steps = document.querySelectorAll(".step");
@@ -41,8 +42,15 @@ input.addEventListener("change", () => {
 
 uploadBtn.addEventListener("click", async () => {
   const file = input.files[0];
+  const username = usernameInput.value.trim();
+
+  if (!username) {
+    alert('Please enter a username.');
+    return;
+  }
+
   if (file) {
-    await uploadImage(file);  // Pass the file directly
+    await uploadImage(file, username);  // Pass file and username
   }
 
   steps.forEach(step => step.classList.remove("active"));
@@ -54,8 +62,9 @@ uploadBtn.addEventListener("click", async () => {
   });
 });
 
-async function uploadImage(file) {
+async function uploadImage(file, username) {
     if (!file) return alert('Please select a file first.');
+    if (!username) return alert('Please enter a username.');
 
     try {
         // 1. Ask your HTTP API (via Lambda) for an upload pass
@@ -65,7 +74,8 @@ async function uploadImage(file) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 fileName: file.name,
-                fileType: file.type
+                fileType: file.type,
+                user_id: username
             })
         });
 
@@ -83,6 +93,7 @@ async function uploadImage(file) {
             method: 'PUT',
             headers: {
                 'Content-Type' : file.type,
+                'x-amz-meta-user_id': username,
                 'x-amz-server-side-encryption': 'aws:kms',
                 'x-amz-server-side-encryption-aws-kms-key-id': 'arn:aws:kms:us-east-1:337763382699:key/2a0566eb-80cb-4a5b-be8c-bdd6abfe5b03'
             },
