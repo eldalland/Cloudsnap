@@ -42,12 +42,11 @@ jobs:
           zip -r deployment_package_image.zip image_processor.py
           aws lambda update-function-code --function-name cloudsnap-image-processor-lambda --zip-file fileb://deployment_package_image.zip
 
-      - name: Deploy SQS Retriever Lambda Function
+      - name: Deploy DynamoDB Stream Lambda Function
         run: |
           cd backend
-          zip -r deployment_package_sqs.zip db_stream.py
-          aws lambda update-function-code --function-name sharing_photos_group6 --zip-file fileb://deployment_package_sqs.zip
-
+          zip -r deployment_package_db_stream.zip db_stream.py
+          aws lambda update-function-code --function-name sharing_photos_group6 --zip-file fileb://deployment_package_db_stream.zip
 
       - name: Deploy SQS Retriever Lambda Function
         run: |
