@@ -32,9 +32,11 @@ def lambda_handler(event, context):
         
         # Filter messages by user_id and extract image data
         if 'Messages' in messages:
+            print(f"Found {len(messages['Messages'])} messages in queue")
             for message in messages['Messages']:
                 message_attributes = message.get('MessageAttributes', {})
                 msg_user_id = message_attributes.get('user_id', {}).get('StringValue')
+                print(f"Message user_id: {msg_user_id}, Looking for: {user_id}, Match: {msg_user_id == user_id}")
                 
                 # Only return messages for this user
                 if msg_user_id == user_id:
