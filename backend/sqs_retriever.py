@@ -7,10 +7,13 @@ QUEUE_URL = os.environ['SQS_QUEUE_URL']
 
 def lambda_handler(event, context):
     print("=== SQS RETRIEVER LAMBDA TRIGGERED ===")
+    print(f"Event: {json.dumps(event)}")
+    print(f"QUEUE_URL from env: {QUEUE_URL}")
     
     try:
         # Get user_id from query parameters
         user_id = event.get('queryStringParameters', {}).get('user_id')
+        print(f"user_id from query: {user_id}")
         
         if not user_id:
             return create_response(400, {"error": "user_id query parameter required"})
