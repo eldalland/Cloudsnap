@@ -24,18 +24,31 @@ def lambda_handler(event, context):
             signed_urls = {}
             for platform, s3_url_obj in variants_map.items():
                 s3_url = s3_url_obj['S']
-                # Extract key from URL: https://bucket.s3.amazonaws.com/key → key
-                key = s3_url.split('/')[-1]
-                path = '/'.join(s3_url.split('/')[3:])  # Get full path after domain
+                print(f"Original S3 URL for {platform}: {s3_url}")
                 
-                # Generate signed URL (valid for 1 hour)
-                signed_url = s3_client.generate_presigned_url(
-                    'get_object',
-                    Params={'Bucket': PROCESSED_BUCKET, 'Key': path},
-                    ExpiresIn=3600  # 1 hour
-                )
-                signed_urls[platform] = signed_url
-                print(f"Generated signed URL for {platform}")
+                # Extract key from URL - handle different URL formats
+                # https://bucket.s3.amazonaws.com/key or https://bucket.s3.region.amazonaws.com/key
+                try:
+                    # Split by domain and get everything after it
+                    parts = s3_url.split('.s3')
+                    if len(parts) > 1:
+                        # Get the path after the domain
+                        path_part = parts[1].split('/', 1)[1]  # Skip the first /, get the rest
+                        print(f"Extracted path for {platform}: {path_part}")
+                    else:
+                        path_part = s3_url.split('/')[-1]
+                    
+                    # Generate signed URL (valid for 1 hour)
+                    signed_url = s3_client.generate_presigned_url(
+                        'get_object',
+                        Params={'Bucket': PROCESSED_BUCKET, 'Key': path_part},
+                        ExpiresIn=3600  # 1 hour
+                    )
+                    signed_urls[platform] = signed_url
+                    print(f"Generated signed URL for {platform}")
+                except Exception as e:
+                    print(f"Error generating signed URL for {platform}: {str(e)}")
+                    raise
             
             # Construct the data payload with signed URLs
             message_body = {
