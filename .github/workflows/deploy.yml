@@ -53,4 +53,4 @@ jobs:
         run: |
           cd backend
           zip -r deployment_package_sqs.zip sqs_retriever.py
-          aws lambda update-function-code --function-name sqs_retriever_group6 --zip-file fileb://deployment_package_sqs.zip
+          aws lambda update-function-code --function-name sqs_rertriever_group6 --zip-file fileb://deployment_package_sqs.zip
