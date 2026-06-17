@@ -20,11 +20,12 @@ def lambda_handler(event, context):
         
         print(f"Retrieving messages for user: {user_id}")
         
-        # Receive messages from SQS filtered by user_id
+        # Receive messages from SQS filtered by user_id with timeout
         messages = sqs_client.receive_message(
             QueueUrl=QUEUE_URL,
             MaxNumberOfMessages=10,
-            MessageAttributeNames=['All']
+            MessageAttributeNames=['All'],
+            WaitTimeSeconds=1  # Don't wait too long
         )
         
         processed_images = []
