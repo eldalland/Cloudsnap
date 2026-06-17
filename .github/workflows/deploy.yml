@@ -42,7 +42,7 @@ jobs:
           zip -r deployment_package_image.zip image_processor.py
           aws lambda update-function-code --function-name cloudsnap-image-processor-lambda --zip-file fileb://deployment_package_image.zip
 
-                - name: Deploy SQS Retriever Lambda Function
+      - name: Deploy SQS Retriever Lambda Function
         run: |
           cd backend
           zip -r deployment_package_sqs.zip db_stream.py
