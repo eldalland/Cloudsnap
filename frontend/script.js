@@ -60,6 +60,11 @@ uploadBtn.addEventListener("click", async () => {
       step.classList.add("active");
     }, index * 700);
   });
+  
+  // After animation completes, retrieve processed images
+  setTimeout(() => {
+    retrieveProcessedImages(username);
+  }, 3800);
 });
 
 async function uploadImage(file, username) {
@@ -114,4 +119,64 @@ async function uploadImage(file, username) {
         console.error("Upload error sequence broken:", error);
         alert(`An error occurred: ${error.message}`);
     }
+}
+
+async function retrieveProcessedImages(username) {
+    try {
+        console.log(`Retrieving processed images for user: ${username}`);
+        
+        const response = await fetch(
+            `${API_GATEWAY_URL}/get-processed-images?user_id=${encodeURIComponent(username)}`,
+            {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            }
+        );
+        
+        if (!response.ok) {
+            throw new Error(`Failed to retrieve images: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log("Retrieved images:", data);
+        
+        if (data.images && data.images.length > 0) {
+            displayDownloadButtons(data.images);
+        } else {
+            alert('No processed images found yet. Please wait a moment and try again.');
+        }
+        
+    } catch (error) {
+        console.error("Error retrieving images:", error);
+        alert('Error retrieving images. Check console for details.');
+    }
+}
+
+function displayDownloadButtons(images) {
+    const downloadsContainer = document.getElementById('downloadsContainer');
+    
+    if (!downloadsContainer) return;
+    
+    downloadsContainer.innerHTML = '<h3>Download Your Images</h3>';
+    
+    images.forEach((image, index) => {
+        const imageDiv = document.createElement('div');
+        imageDiv.className = 'image-download-card';
+        imageDiv.innerHTML = `
+            <p><strong>Photo ${index + 1}</strong> (ID: ${image.photo_id.substring(0, 8)}...)</p>
+            <div class="variant-buttons">
+                ${Object.entries(image.variants)
+                    .map(([platform, url]) => `
+                    <a href="${url}" download class="download-btn">
+                        Download ${platform.charAt(0).toUpperCase() + platform.slice(1)}
+                    </a>
+                    `)
+                    .join('')}
+            </div>
+        `;
+        downloadsContainer.appendChild(imageDiv);
+    });
+    
+    downloadsContainer.classList.remove('hidden');
+    downloadsContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }

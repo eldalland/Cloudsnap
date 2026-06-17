@@ -39,5 +39,18 @@ jobs:
       - name: Deploy Backend Image Processing Lambda Function 
         run: |
           cd backend
-          zip -r deployment_package.zip image_processor.py
-          aws lambda update-function-code --function-name cloudsnap-image-processor-lambda --zip-file fileb://deployment_package.zip
+          zip -r deployment_package_image.zip image_processor.py
+          aws lambda update-function-code --function-name cloudsnap-image-processor-lambda --zip-file fileb://deployment_package_image.zip
+
+                - name: Deploy SQS Retriever Lambda Function
+        run: |
+          cd backend
+          zip -r deployment_package_sqs.zip db_stream.py
+          aws lambda update-function-code --function-name sharing_photos_group6 --zip-file fileb://deployment_package_sqs.zip
+
+
+      - name: Deploy SQS Retriever Lambda Function
+        run: |
+          cd backend
+          zip -r deployment_package_sqs.zip sqs_retriever.py
+          aws lambda update-function-code --function-name sqs_retriever_group6 --zip-file fileb://deployment_package_sqs.zip

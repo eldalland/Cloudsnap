@@ -62,7 +62,8 @@ def lambda_handler(event, context):
                 Bucket=processed_bucket,
                 Key=destination_key,
                 Body=buffer,
-                ContentType=response['ContentType']
+                ContentType=response['ContentType'],
+                ContentDisposition='attachment'
             )
             resized_urls[platform] = f"https://{processed_bucket}.s3.amazonaws.com/{destination_key}"
             

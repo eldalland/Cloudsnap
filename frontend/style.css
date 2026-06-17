@@ -237,6 +237,50 @@ footer {
   color: var(--muted);
 }
 
+.downloads-card {
+  max-width: 690px;
+  margin: 28px auto;
+}
+
+.image-download-card {
+  background: rgba(255,255,255,.08);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255,255,255,.15);
+}
+
+.image-download-card p {
+  margin: 0 0 12px 0;
+  color: var(--text);
+}
+
+.variant-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.download-btn {
+  display: inline-block;
+  padding: 10px 16px;
+  background: rgba(56, 189, 248, 0.2);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  color: var(--accent);
+  text-decoration: none;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.download-btn:hover {
+  background: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+}
+
 @media (max-width: 900px) {
   .status, .preview-grid, .service-grid, .platform-grid {
     grid-template-columns: 1fr;
