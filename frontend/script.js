@@ -18,8 +18,17 @@ Amplify.configure({
         oauth: {
           domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com', 
           scopes: ['openid', 'email', 'profile'],
-          redirectSignIn: ['https://d27xgyz8l8wwy4.cloudfront.net', 'http://localhost:3000'], 
-          redirectSignOut: ['https://d27xgyz8l8wwy4.cloudfront.net', 'http://localhost:3000'],
+          // Add BOTH CloudFront and your S3 Website Endpoint to the arrays
+          redirectSignIn: [
+            'https://d27xgyz8l8wwy4.cloudfront.net',
+            'http://serverless-photo-website-group6.s3-website-us-east-1.amazonaws.com',
+            'http://localhost:3000'
+          ], 
+          redirectSignOut: [
+            'https://d27xgyz8l8wwy4.cloudfront.net',
+            'http://serverless-photo-website-group6.s3-website-us-east-1.amazonaws.com',
+            'http://localhost:3000'
+          ],
           responseType: 'code' 
         }
       }
