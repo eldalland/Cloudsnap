@@ -1,5 +1,4 @@
-import { Amplify } from 'https://cdnjs.cloudflare.com/ajax/libs/aws-amplify/5.3.12/aws-amplify.min.js';
-import { fetchAuthSession, signInWithRedirect, signOut, getCurrentUser } from 'https://cdn.jsdelivr.net/npm/aws-amplify@6/auth/dist/esm/index.js';
+import { Amplify } from 'https://unpkg.com/aws-amplify@6/dist/aws-amplify.js';
 
 Amplify.configure({
   Auth: {
