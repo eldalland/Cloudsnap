@@ -1,14 +1,15 @@
-// Base configuration utility
-import { Amplify } from 'https://esm.sh/aws-amplify@6';
+import { 
+  Amplify, 
+  fetchAuthSession 
+} from 'https://esm.sh/aws-amplify@6?bundle';
 
-// Pull ALL required session and utility mechanics from the Auth sub-module bundle
 import { 
   signInWithRedirect, 
   signOut, 
-  getCurrentUser, 
-  fetchAuthSession 
-} from 'https://esm.sh/@aws-amplify/auth@6';
+  getCurrentUser 
+} from 'https://esm.sh/@aws-amplify/auth@6?bundle';
 
+// --- CONFIGURATION ---
 Amplify.configure({
   Auth: {
     Cognito: {
@@ -18,14 +19,15 @@ Amplify.configure({
         oauth: {
           domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com', 
           scopes: ['openid', 'email', 'profile'],
-          // Add BOTH CloudFront and your S3 Website Endpoint to the arrays
           redirectSignIn: [
             'https://d27xgyz8l8wwy4.cloudfront.net',
+            'https://d27xgyz8l8wwy4.cloudfront.net/',
             'http://serverless-photo-website-group6.s3-website-us-east-1.amazonaws.com',
             'http://localhost:3000'
           ], 
           redirectSignOut: [
             'https://d27xgyz8l8wwy4.cloudfront.net',
+            'https://d27xgyz8l8wwy4.cloudfront.net/',
             'http://serverless-photo-website-group6.s3-website-us-east-1.amazonaws.com',
             'http://localhost:3000'
           ],
