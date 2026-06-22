@@ -1,11 +1,10 @@
-// 1. IMPORT ALL NECESSARY FUNCTIONS FROM THE UNPKG SINGLE BUNDLE
 import { 
   Amplify, 
   signInWithRedirect, 
   signOut, 
   getCurrentUser, 
   fetchAuthSession 
-} from 'https://unpkg.com/aws-amplify@6/dist/aws-amplify.js';
+} from 'https://esm.sh/aws-amplify@6';
 
 Amplify.configure({
   Auth: {
