@@ -22,6 +22,7 @@ def lambda_handler(event, context):
         
         # 1. Query DynamoDB for the user's records
         db_response = table.query(
+            IndexName='user_id_index',  # <--- Change this if your index name is different!
             KeyConditionExpression=Key('user_id').eq(user_id)
         )
         records = db_response.get('Items', [])
