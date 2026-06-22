@@ -1,10 +1,13 @@
+// Core configuration utility
+import { Amplify } from 'https://esm.sh/aws-amplify@6';
+
+// Specific authentication actions for v6
 import { 
-  Amplify, 
   signInWithRedirect, 
   signOut, 
   getCurrentUser, 
   fetchAuthSession 
-} from 'https://esm.sh/aws-amplify@6';
+} from 'https://esm.sh/@aws-amplify/auth@6';
 
 Amplify.configure({
   Auth: {
