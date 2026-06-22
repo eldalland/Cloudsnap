@@ -10,7 +10,7 @@
   <header class="hero">
     <nav>
       <div class="logo">📸 CloudSnap</div>
-      <button id="showUploadBtn" class="nav-btn">Upload Photo</button>
+      <button id="showUploadBtn" class="nav-btn hidden">Upload Photo</button>
     </nav>
 
     <div class="hero-content">
@@ -20,11 +20,25 @@
         Upload one image and automatically resize it for Facebook, Instagram,
         LinkedIn, and website sharing using AWS serverless services.
       </p>
-      <button id="startUploadBtn" class="primary-btn">Upload Image</button>
+      <button id="startUploadBtn" class="primary-btn hidden">Upload Image</button>
     </div>
   </header>
 
   <main>
+    <section id="authContainer" class="auth-section">
+      <div id="loggedOutView" class="auth-card">
+        <h2>Secure Photo Portal</h2>
+        <p>Please authenticate via Cognito to upload and manage your cloud assets.</p>
+        <button id="loginBtn" class="btn primary-btn">Sign In / Register</button>
+      </div>
+
+      <div id="loggedInView" class="auth-card hidden">
+        <h2>Welcome Back!</h2>
+        <p>Authenticated as: <span id="loggedInUser" class="user-badge">Loading...</span></p>
+        <button id="logoutBtn" class="btn secondary-btn">Sign Out</button>
+      </div>
+    </section>
+
     <section id="upload" class="card upload-card hidden">
       <button id="closeUploadBtn" class="close-btn" aria-label="Close upload panel">✕</button>
       <h2>Upload Your Image</h2>
@@ -48,8 +62,7 @@
     </section>
 
     <section id="downloadsContainer" class="card downloads-card hidden">
-      <!-- Downloads will be populated here by JavaScript -->
-    </section>
+      </section>
 
     <section class="preview-section">
       <br><br><br><br>
@@ -114,7 +127,7 @@
 
   <footer>
     <p>Serverless Photo Sharing and Multi-Platform Image Optimization System</p>
-    <p>Project Made By: Howie B · Erik Dalland · Jean Cespendes ·Ametelwokil Omer </p>
+    <p>Project Made By: Howie B · Erik Dalland · Jean Cespendes · Ametelwokil Omer </p>
   </footer>
 
   <script type="module" src="script.js"></script>

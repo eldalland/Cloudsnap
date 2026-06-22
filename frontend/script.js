@@ -1,17 +1,27 @@
 import { Amplify } from 'https://cdn.jsdelivr.net/npm/aws-amplify@6/dist/esm/index.js';
-import { fetchAuthSession } from 'https://cdn.jsdelivr.net/npm/aws-amplify@6/auth/dist/esm/index.js';
+import { fetchAuthSession, signInWithRedirect, signOut, getCurrentUser } from 'https://cdn.jsdelivr.net/npm/aws-amplify@6/auth/dist/esm/index.js';
 
 Amplify.configure({
   Auth: {
     Cognito: {
       userPoolId: 'us-east-1_BILlNM20K',
-      userPoolClientId: '3s19gm75adqtebvq0p8bgbta8a' 
+      userPoolClientId: '3s19gm75adqtebvq0p8bgbta8a',
+      loginWith: {
+        oauth: {
+          // Fixed: Removed duplicate string attachments and protocol headers
+          domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com', 
+          scopes: ['openid', 'email', 'profile'],
+          redirectSignIn: ['https://d15kfhgeq0idge.cloudfront.net', 'http://localhost:3000'], 
+          redirectSignOut: ['https://d15kfhgeq0idge.cloudfront.net', 'http://localhost:3000'],
+          responseType: 'code' 
+        }
+      }
     }
   }
 });
 
+// DOM Element Selectors
 const input = document.getElementById("imageInput");
-// Note: You can delete the usernameInput element from your HTML entirely now!
 const fileName = document.getElementById("fileName");
 const uploadBtn = document.getElementById("uploadBtn");
 const steps = document.querySelectorAll(".step");
@@ -21,7 +31,69 @@ const uploadSection = document.getElementById("upload");
 const showUploadBtn = document.getElementById("showUploadBtn");
 const startUploadBtn = document.getElementById("startUploadBtn");
 const closeUploadBtn = document.getElementById("closeUploadBtn");
+
+// New Auth Element Selectors
+const loggedOutView = document.getElementById("loggedOutView");
+const loggedInView = document.getElementById("loggedInView");
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const loggedInUser = document.getElementById("loggedInUser");
+
 const API_GATEWAY_URL = "https://cco10loarj.execute-api.us-east-1.amazonaws.com";
+
+// --- AUTHENTICATION FLOW MANAGEMENT ---
+
+// Wire up login/logout redirect interactions
+if (loginBtn) loginBtn.addEventListener("click", () => signInWithRedirect());
+if (logoutBtn) logoutBtn.addEventListener("click", () => signOut());
+
+// Evaluates the user's active session state on page load
+async function checkUserSession() {
+    try {
+        const user = await getCurrentUser();
+        
+        // User is authenticated successfully -> Show profile panel
+        if (loggedOutView) loggedOutView.classList.add("hidden");
+        if (loggedInView) loggedInView.classList.remove("hidden");
+        if (loggedInUser) loggedInUser.textContent = user.username;
+        
+        // Un-hide the action triggers so they can launch the upload panel card
+        if (showUploadBtn) showUploadBtn.classList.remove("hidden");
+        if (startUploadBtn) startUploadBtn.classList.remove("hidden");
+        
+        console.log("Session authenticated successfully for:", user.username);
+    } catch (err) {
+        // User is not logged in or token expired -> Lock UI views down
+        if (loggedOutView) loggedOutView.classList.remove("hidden");
+        if (loggedInView) loggedInView.classList.add("hidden");
+        
+        // Keep file upload workflow hidden until authentication passes
+        if (uploadSection) uploadSection.classList.add("hidden");
+        if (showUploadBtn) showUploadBtn.classList.add("hidden");
+        if (startUploadBtn) startUploadBtn.classList.add("hidden");
+        
+        console.log("No authenticated user profile detected locally.");
+    }
+}
+
+async function getCognitoToken() {
+    try {
+        const session = await fetchAuthSession();
+        const idToken = session.tokens?.idToken?.toString();
+        
+        if (!idToken) {
+            throw new Error("No active credentials found in local storage.");
+        }
+        
+        return idToken;
+    } catch (err) {
+        console.error("Amplify Auth Error:", err);
+        alert("Session expired or unauthorized. Please log in again.");
+        return null;
+    }
+}
+
+// --- CORE APPLICATION UPLOAD & VIEW WORKFLOW ---
 
 function showUploadSection() {
   uploadSection.classList.remove("hidden");
@@ -33,13 +105,12 @@ function closeUploadSection() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-showUploadBtn.addEventListener("click", showUploadSection);
-startUploadBtn.addEventListener("click", showUploadSection);
-closeUploadBtn.addEventListener("click", closeUploadSection);
+if (showUploadBtn) showUploadBtn.addEventListener("click", showUploadSection);
+if (startUploadBtn) startUploadBtn.addEventListener("click", showUploadSection);
+if (closeUploadBtn) closeUploadBtn.addEventListener("click", closeUploadSection);
 
 input.addEventListener("change", () => {
   const file = input.files[0];
-
   if (!file) return;
 
   fileName.textContent = file.name;
@@ -60,18 +131,15 @@ uploadBtn.addEventListener("click", async () => {
     return;
   }
 
-  // Identity is implicitly extracted via the session token now
   await uploadImage(file);  
 
   steps.forEach(step => step.classList.remove("active"));
-
   steps.forEach((step, index) => {
     setTimeout(() => {
       step.classList.add("active");
     }, index * 700);
   });
   
-  // After animation completes, retrieve processed images securely
   setTimeout(() => {
     retrieveProcessedImages();
   }, 3800);
@@ -81,21 +149,18 @@ async function uploadImage(file) {
     if (!file) return alert('Please select a file first.');
 
     try {
-        // 1. Fetch your verified Cognito token
         const token = await getCognitoToken();
         if (!token) return;
 
-        // 2. Ask API Gateway for an upload pass
         const apiResponse = await fetch(`${API_GATEWAY_URL}/get-presigned-url`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // Pass token to your authorizer
+                'Authorization': `Bearer ${token}` 
             },
             body: JSON.stringify({
                 fileName: file.name,
                 fileType: file.type
-                // No longer sending user_id in the body! Lambda reads it from context
             })
         });
 
@@ -106,14 +171,12 @@ async function uploadImage(file) {
         const data = await apiResponse.json();
         const s3PresignedUrl = data.uploadUrl;
 
-        // 3. Send the raw binary file directly to S3 using PUT
         const s3Upload = await fetch(s3PresignedUrl, {
             method: 'PUT',
             headers: {
                 'Content-Type' : file.type,
                 'x-amz-server-side-encryption': 'aws:kms',
                 'x-amz-server-side-encryption-aws-kms-key-id': 'arn:aws:kms:us-east-1:337763382699:key/2a0566eb-80cb-4a5b-be8c-bdd6abfe5b03'
-                // S3 metadata tags aren't required anymore because your DB retrieval is completely locked down
             },
             body: file 
         });
@@ -137,16 +200,14 @@ async function retrieveProcessedImages() {
     try {
         console.log(`Retrieving processed images via authenticated Cognito session`);
         
-        // 1. Fetch your verified Cognito token
         const token = await getCognitoToken();
         if (!token) return;
 
-        // 2. Query endpoint directly. Notice: NO QUERY STRINGS!
         const response = await fetch(`${API_GATEWAY_URL}/get-processed-images`, {
             method: 'GET',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // The token carries the identity
+                'Authorization': `Bearer ${token}` 
             }
         });
         
@@ -171,7 +232,6 @@ async function retrieveProcessedImages() {
 
 function displayDownloadButtons(images) {
     const downloadsContainer = document.getElementById('downloadsContainer');
-    
     if (!downloadsContainer) return;
     
     downloadsContainer.innerHTML = '<h3>Download Your Images</h3>';
@@ -198,19 +258,5 @@ function displayDownloadButtons(images) {
     downloadsContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-async function getCognitoToken() {
-    try {
-        const session = await fetchAuthSession();
-        const idToken = session.tokens?.idToken?.toString();
-        
-        if (!idToken) {
-            throw new Error("No active credentials found in local storage.");
-        }
-        
-        return idToken;
-    } catch (err) {
-        console.error("Amplify Auth Error:", err);
-        alert("Session expired or unauthorized. Please log in again.");
-        return null;
-    }
-}
+// Initialize session check execution immediately when page loads
+checkUserSession();
