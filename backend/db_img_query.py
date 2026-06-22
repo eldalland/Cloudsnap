@@ -5,7 +5,8 @@ from boto3.dynamodb.conditions import Key
 from urllib.parse import urlparse
 
 # Setup S3 client and DynamoDB resource
-s3_client = boto3.client('s3')
+s3_config = Config(signature_version='s3v4', region_name='us-east-1')
+s3_client = boto3.client('s3', config=s3_config)
 dynamodb = boto3.resource('dynamodb')
 
 TABLE_NAME = os.environ.get('DYNAMODB_TABLE_NAME', 'cloudsnap')
