@@ -11,8 +11,8 @@ Amplify.configure({
           // Fixed: Removed duplicate string attachments and protocol headers
           domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com', 
           scopes: ['openid', 'email', 'profile'],
-          redirectSignIn: ['https://d15kfhgeq0idge.cloudfront.net', 'http://localhost:3000'], 
-          redirectSignOut: ['https://d15kfhgeq0idge.cloudfront.net', 'http://localhost:3000'],
+          redirectSignIn: ['https://d27xgyz8l8wwy4.cloudfront.net', 'http://localhost:3000'], 
+          redirectSignOut: ['https://d27xgyz8l8wwy4.cloudfront.net', 'http://localhost:3000'],
           responseType: 'code' 
         }
       }

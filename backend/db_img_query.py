@@ -2,29 +2,34 @@ import json
 import os
 import boto3
 from boto3.dynamodb.conditions import Key
-from botocore.config import Config
 from urllib.parse import urlparse
 
-# Setup S3 client and DynamoDB resource
-s3_config = Config(signature_version='s3v4', region_name='us-east-1')
-s3_client = boto3.client('s3', config=s3_config)
 dynamodb = boto3.resource('dynamodb')
 
 TABLE_NAME = os.environ.get('DYNAMODB_TABLE_NAME', 'cloudsnap')
-PROCESSED_BUCKET = os.environ['PROCESSED_BUCKET']
 table = dynamodb.Table(TABLE_NAME)
+
+# Define your asset CloudFront distribution domain here
+CLOUDFRONT_ASSET_DOMAIN = "https://d15kfhgeq0idge.cloudfront.net"
 
 def lambda_handler(event, context):
     try:
-        user_id = event.get('queryStringParameters', {}).get('user_id')
-        if not user_id:
-            return create_response(400, {"error": "user_id query parameter required"})
+        # 1. EXTRACT USERNAME SECURELY FROM COGNITO CONTEXT
+        try:
+            authorizer_claims = event['requestContext']['authorizer']['claims']
+            user_id = authorizer_claims.get('cognito:username') or authorizer_claims.get('username')
+            
+            if not user_id:
+                return create_response(401, {"error": "Unauthorized: Unable to extract valid user context"})
+        except (KeyError, TypeError) as e:
+            print(f"Authorizer block exception payload: {str(event)}")
+            return create_response(401, {"error": "Unauthorized: Request missing validated Cognito token context."})
         
-        print(f"Fetching metadata from DynamoDB for user: {user_id}")
+        print(f"Fetching metadata from DynamoDB for verified user: {user_id}")
         
-        # 1. Query DynamoDB for the user's records
+        # 2. Query DynamoDB for the user's records using your Global Secondary Index
         db_response = table.query(
-            IndexName='user_id_index',  # <--- Change this if your index name is different!
+            IndexName='user_id_index',  
             KeyConditionExpression=Key('user_id').eq(user_id)
         )
         records = db_response.get('Items', [])
@@ -32,42 +37,30 @@ def lambda_handler(event, context):
         
         processed_images = []
         
-        # 2. Loop through records and generate fresh presigned URLs
+        # 3. Loop through records and dynamically build high-performance CloudFront URLs
         for record in records:
             photo_id = record.get('photo_id')
             raw_variants = record.get('Variants', {})
             
-            signed_variants = {}
+            cloudfront_variants = {}
             for platform, s3_value in raw_variants.items():
-                try:
-                    # Handle if DynamoDB stores variants as objects or raw strings
-                    s3_path_str = s3_value.get('S') if isinstance(s3_value, dict) else str(s3_value)
-                    
-                    # Robust extraction: If it's a full URL, strip out everything except the true S3 key
-                    if s3_path_str.startswith('http://') or s3_path_str.startswith('https://'):
-                        parsed_url = urlparse(s3_path_str)
-                        clean_key = parsed_url.path.lstrip('/') # Removes leading slash
-                    else:
-                        clean_key = s3_path_str.lstrip('/')
-                    
-                    print(f"Signing bucket: {PROCESSED_BUCKET} with clean key: {clean_key}")
-                    
-                    # Generate a fresh 1-hour download token
-                    fresh_url = s3_client.generate_presigned_url(
-                        'get_object',
-                        Params={'Bucket': PROCESSED_BUCKET, 'Key': clean_key},
-                        ExpiresIn=3600
-                    )
-                    signed_variants[platform] = fresh_url
-                except Exception as s3_err:
-                    print(f"Failed signing for variant {platform}: {str(s3_err)}")
-                    # Skip broken variants instead of crashing the entire response loop
-                    continue
+                # Handle if DynamoDB stores variants as objects or raw strings
+                s3_path_str = s3_value.get('S') if isinstance(s3_value, dict) else str(s3_value)
+                
+                # Robust extraction: Strip out full URLs or bucket names to isolate just the true key prefix
+                if s3_path_str.startswith('http://') or s3_path_str.startswith('https://'):
+                    parsed_url = urlparse(s3_path_str)
+                    clean_key = parsed_url.path.lstrip('/') 
+                else:
+                    clean_key = s3_path_str.lstrip('/')
+                
+                # REPLACEMENT: Instead of signing an S3 URL, append the clean asset key to your CloudFront distribution domain
+                cloudfront_variants[platform] = f"{CLOUDFRONT_ASSET_DOMAIN}/{clean_key}"
             
             processed_images.append({
                 "user_id": user_id,
                 "photo_id": photo_id,
-                "variants": signed_variants
+                "variants": cloudfront_variants
             })
             
         return create_response(200, {
@@ -80,12 +73,13 @@ def lambda_handler(event, context):
         return create_response(500, {"error": str(e)})
 
 def create_response(status_code, body):
+    """Helper to handle CORS and format the API Gateway response"""
     return {
         "statusCode": status_code,
         "headers": {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
             "Access-Control-Allow-Methods": "GET,OPTIONS"
         },
         "body": json.dumps(body)
