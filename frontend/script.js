@@ -1,4 +1,11 @@
-import { Amplify } from 'https://unpkg.com/aws-amplify@6/dist/aws-amplify.js';
+// 1. IMPORT ALL NECESSARY FUNCTIONS FROM THE UNPKG SINGLE BUNDLE
+import { 
+  Amplify, 
+  signInWithRedirect, 
+  signOut, 
+  getCurrentUser, 
+  fetchAuthSession 
+} from 'https://unpkg.com/aws-amplify@6/dist/aws-amplify.js';
 
 Amplify.configure({
   Auth: {
@@ -7,7 +14,6 @@ Amplify.configure({
       userPoolClientId: '3s19gm75adqtebvq0p8bgbta8a',
       loginWith: {
         oauth: {
-          // Fixed: Removed duplicate string attachments and protocol headers
           domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com', 
           scopes: ['openid', 'email', 'profile'],
           redirectSignIn: ['https://d27xgyz8l8wwy4.cloudfront.net', 'http://localhost:3000'], 
