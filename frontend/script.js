@@ -1,5 +1,17 @@
+import { Amplify } from 'https://cdn.jsdelivr.net/npm/aws-amplify@6/dist/esm/index.js';
+import { fetchAuthSession } from 'https://cdn.jsdelivr.net/npm/aws-amplify@6/auth/dist/esm/index.js';
+
+Amplify.configure({
+  Auth: {
+    Cognito: {
+      userPoolId: 'us-east-1_BILlNM20K',
+      userPoolClientId: '3s19gm75adqtebvq0p8bgbta8a' 
+    }
+  }
+});
+
 const input = document.getElementById("imageInput");
-const usernameInput = document.getElementById("usernameInput");
+// Note: You can delete the usernameInput element from your HTML entirely now!
 const fileName = document.getElementById("fileName");
 const uploadBtn = document.getElementById("uploadBtn");
 const steps = document.querySelectorAll(".step");
@@ -42,16 +54,14 @@ input.addEventListener("change", () => {
 
 uploadBtn.addEventListener("click", async () => {
   const file = input.files[0];
-  const username = usernameInput.value.trim();
 
-  if (!username) {
-    alert('Please enter a username.');
+  if (!file) {
+    alert('Please select an image to upload.');
     return;
   }
 
-  if (file) {
-    await uploadImage(file, username);  // Pass file and username
-  }
+  // Identity is implicitly extracted via the session token now
+  await uploadImage(file);  
 
   steps.forEach(step => step.classList.remove("active"));
 
@@ -61,26 +71,31 @@ uploadBtn.addEventListener("click", async () => {
     }, index * 700);
   });
   
-  // After animation completes, retrieve processed images
+  // After animation completes, retrieve processed images securely
   setTimeout(() => {
-    retrieveProcessedImages(username);
+    retrieveProcessedImages();
   }, 3800);
 });
 
-async function uploadImage(file, username) {
+async function uploadImage(file) {
     if (!file) return alert('Please select a file first.');
-    if (!username) return alert('Please enter a username.');
 
     try {
-        // 1. Ask your HTTP API (via Lambda) for an upload pass
-        // Notice we target the specific route path we designed: /get-presigned-url
+        // 1. Fetch your verified Cognito token
+        const token = await getCognitoToken();
+        if (!token) return;
+
+        // 2. Ask API Gateway for an upload pass
         const apiResponse = await fetch(`${API_GATEWAY_URL}/get-presigned-url`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // Pass token to your authorizer
+            },
             body: JSON.stringify({
                 fileName: file.name,
-                fileType: file.type,
-                user_id: username
+                fileType: file.type
+                // No longer sending user_id in the body! Lambda reads it from context
             })
         });
 
@@ -88,27 +103,24 @@ async function uploadImage(file, username) {
             throw new Error(`API Gateway error: ${apiResponse.statusText}`);
         }
         
-        // Extract the target S3 upload URL string sent back by Lambda
         const data = await apiResponse.json();
         const s3PresignedUrl = data.uploadUrl;
 
-        // 2. Send the raw binary file directly to S3 using PUT
-        // This replaces the complex FormData loop and completely avoids the 405 error
+        // 3. Send the raw binary file directly to S3 using PUT
         const s3Upload = await fetch(s3PresignedUrl, {
             method: 'PUT',
             headers: {
                 'Content-Type' : file.type,
-                'x-amz-meta-user_id': username,
                 'x-amz-server-side-encryption': 'aws:kms',
                 'x-amz-server-side-encryption-aws-kms-key-id': 'arn:aws:kms:us-east-1:337763382699:key/2a0566eb-80cb-4a5b-be8c-bdd6abfe5b03'
+                // S3 metadata tags aren't required anymore because your DB retrieval is completely locked down
             },
-            body: file // Uploading the raw file object directly
+            body: file 
         });
 
         if (s3Upload.ok) {
             alert('Image successfully uploaded straight to S3!');
         } else {
-            // READ THE RAW ERROR TEXT INSTEAD OF LETTING THE INSPECTOR EVICT IT
             const errorText = await s3Upload.text();
             console.error("--- DETAILED S3 ERROR CORES ---");
             console.error(errorText);
@@ -121,17 +133,22 @@ async function uploadImage(file, username) {
     }
 }
 
-async function retrieveProcessedImages(username) {
+async function retrieveProcessedImages() {
     try {
-        console.log(`Retrieving processed images for user: ${username}`);
+        console.log(`Retrieving processed images via authenticated Cognito session`);
         
-        const response = await fetch(
-            `${API_GATEWAY_URL}/get-processed-images?user_id=${encodeURIComponent(username)}`,
-            {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
+        // 1. Fetch your verified Cognito token
+        const token = await getCognitoToken();
+        if (!token) return;
+
+        // 2. Query endpoint directly. Notice: NO QUERY STRINGS!
+        const response = await fetch(`${API_GATEWAY_URL}/get-processed-images`, {
+            method: 'GET',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // The token carries the identity
             }
-        );
+        });
         
         if (!response.ok) {
             throw new Error(`Failed to retrieve images: ${response.statusText}`);
@@ -179,4 +196,21 @@ function displayDownloadButtons(images) {
     
     downloadsContainer.classList.remove('hidden');
     downloadsContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+async function getCognitoToken() {
+    try {
+        const session = await fetchAuthSession();
+        const idToken = session.tokens?.idToken?.toString();
+        
+        if (!idToken) {
+            throw new Error("No active credentials found in local storage.");
+        }
+        
+        return idToken;
+    } catch (err) {
+        console.error("Amplify Auth Error:", err);
+        alert("Session expired or unauthorized. Please log in again.");
+        return null;
+    }
 }
