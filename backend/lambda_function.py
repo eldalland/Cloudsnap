@@ -11,27 +11,37 @@ def lambda_handler(event, context):
     if not bucket_name:
         return create_response(500, {"error": "Server configuration error: S3 bucket environment variable missing"})
     
-    # 2. Parse the filename and content type sent by the frontend
+    # 2. Extract Username securely from Cognito Context instead of request body
+    try:
+        # API Gateway extracts this directly from the validated Bearer token
+        authorizer_claims = event['requestContext']['authorizer']['claims']
+        username = authorizer_claims.get('cognito:username') or authorizer_claims.get('username')
+        
+        if not username:
+            return create_response(401, {"error": "Unauthorized: Unable to extract valid user context"})
+    except (KeyError, TypeError) as e:
+        print(f"Authorizer block exception payload: {str(event)}")
+        return create_response(401, {"error": f"Unauthorized: Request missing validated Cognito token context. {str(e)}"})
+
+    # 3. Parse the filename and content type sent by the frontend
     try:
         body = json.loads(event.get('body', '{}'))
         file_name = body.get('fileName')
         file_type = body.get('fileType') # e.g., 'image/jpeg' or 'image/png'
-        username = body.get('user_id')
     except Exception as e:
         return create_response(400, {"error": "Invalid request body"})
 
     if not file_name or not file_type:
         return create_response(400, {"error": "Missing fileName or fileType"})
 
-    # 3. Initialize the S3 Client
-    s3_client = boto3.client('s3', region_name='us-east-1',config=Config(signature_version='s3v4')) # Ensure region matches your architecture
+    # 4. Initialize the S3 Client
+    s3_client = boto3.client('s3', region_name='us-east-1', config=Config(signature_version='s3v4'))
     
-    # Organize uploads into a specific folder prefix
-    object_key = f"uploads/{file_name}"
+    # Organize uploads securely by using their unique Cognito username as a folder prefix
+    object_key = f"uploads/{username}/{file_name}"
 
     try:
-        # 4. Generate the pre-signed PUT URL (Valid for 5 minutes / 300 seconds)
-        # We specify ClientMethod='put_object' so S3 expects a clean PUT stream
+        # 5. Generate the pre-signed PUT URL
         upload_url = s3_client.generate_presigned_url(
             ClientMethod='put_object',
             Params={
@@ -47,7 +57,7 @@ def lambda_handler(event, context):
     except ClientError as e:
         return create_response(500, {"error": str(e)})
 
-    # 5. Return just the clean string upload URL back to the website script
+    # 6. Return just the clean string upload URL back to the website script
     return create_response(200, {
         "uploadUrl": upload_url,
         'metadata': {'user_id': username},
@@ -60,9 +70,10 @@ def create_response(status_code, body):
         "statusCode": status_code,
         "headers": {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*", # Left as * since you don't have a custom domain yet
-            "Access-Control-Allow-Headers": "Content-Type",
-            "Access-Control-Allow-Methods": "POST,PUT,OPTIONS"
+            "Access-Control-Allow-Origin": "*", 
+            # CRITICAL: Added Authorization to allowed headers so preflights don't bounce!
+            "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+            "Access-Control-Allow-Methods": "POST,GET,PUT,OPTIONS"
         },
         "body": json.dumps(body)
     }
