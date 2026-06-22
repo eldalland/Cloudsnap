@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 s3_client = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')
 
-TABLE_NAME = os.environ.get('DYNAMODB_TABLE_NAME', 'cloudsnap_metadata')
+TABLE_NAME = os.environ.get('DYNAMODB_TABLE_NAME', 'cloudsnap')
 PROCESSED_BUCKET = os.environ['PROCESSED_BUCKET']
 table = dynamodb.Table(TABLE_NAME)
 
