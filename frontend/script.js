@@ -1,11 +1,12 @@
-// Core package contains Amplify and fetchAuthSession
-import { Amplify, fetchAuthSession } from 'https://esm.sh/aws-amplify@6';
+// Base configuration utility
+import { Amplify } from 'https://esm.sh/aws-amplify@6';
 
-// Auth package contains your runtime action methods
+// Pull ALL required session and utility mechanics from the Auth sub-module bundle
 import { 
   signInWithRedirect, 
   signOut, 
-  getCurrentUser 
+  getCurrentUser, 
+  fetchAuthSession 
 } from 'https://esm.sh/@aws-amplify/auth@6';
 
 Amplify.configure({
