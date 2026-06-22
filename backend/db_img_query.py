@@ -2,6 +2,7 @@ import json
 import os
 import boto3
 from boto3.dynamodb.conditions import Key
+from botocore.config import Config
 from urllib.parse import urlparse
 
 # Setup S3 client and DynamoDB resource
