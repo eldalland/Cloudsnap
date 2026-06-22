@@ -1,13 +1,13 @@
-import { 
-  Amplify, 
-  fetchAuthSession 
-} from 'https://esm.sh/aws-amplify@6?bundle';
+// Pull the base utility from the core library
+import { Amplify } from 'https://esm.sh/aws-amplify@6';
 
+// Pull ALL your authentication actions from the auth subpath bundle
 import { 
   signInWithRedirect, 
   signOut, 
-  getCurrentUser 
-} from 'https://esm.sh/@aws-amplify/auth@6?bundle';
+  getCurrentUser, 
+  fetchAuthSession 
+} from 'https://esm.sh/@aws-amplify/auth@6';
 
 // --- CONFIGURATION ---
 Amplify.configure({
