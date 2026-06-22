@@ -2,6 +2,7 @@ import json
 import os
 import boto3
 from boto3.dynamodb.conditions import Key
+from urllib.parse import urlparse
 
 # Setup S3 client and DynamoDB resource
 s3_client = boto3.client('s3')
@@ -24,21 +25,31 @@ def lambda_handler(event, context):
             KeyConditionExpression=Key('user_id').eq(user_id)
         )
         records = db_response.get('Items', [])
+        print(f"Found records in DB: {records}")
         
         processed_images = []
         
-        # 2. Loop through records and generate FRESH presigned URLs on the fly
+        # 2. Loop through records and generate fresh presigned URLs
         for record in records:
             photo_id = record.get('photo_id')
-            raw_variants = record.get('Variants', {}) # e.g., {"instagram": "raw/path/key.jpg"}
+            raw_variants = record.get('Variants', {})
             
             signed_variants = {}
-            for platform, s3_key in raw_variants.items():
+            for platform, s3_value in raw_variants.items():
                 try:
-                    # Clean the key if it accidentally saved as a full URL string
-                    clean_key = s3_key.split('.com/')[-1] if '.com/' in s3_key else s3_key
+                    # Handle if DynamoDB stores variants as objects or raw strings
+                    s3_path_str = s3_value.get('S') if isinstance(s3_value, dict) else str(s3_value)
                     
-                    # Generate a fresh 1-hour download token right now
+                    # Robust extraction: If it's a full URL, strip out everything except the true S3 key
+                    if s3_path_str.startswith('http://') or s3_path_str.startswith('https://'):
+                        parsed_url = urlparse(s3_path_str)
+                        clean_key = parsed_url.path.lstrip('/') # Removes leading slash
+                    else:
+                        clean_key = s3_path_str.lstrip('/')
+                    
+                    print(f"Signing bucket: {PROCESSED_BUCKET} with clean key: {clean_key}")
+                    
+                    # Generate a fresh 1-hour download token
                     fresh_url = s3_client.generate_presigned_url(
                         'get_object',
                         Params={'Bucket': PROCESSED_BUCKET, 'Key': clean_key},
@@ -46,7 +57,9 @@ def lambda_handler(event, context):
                     )
                     signed_variants[platform] = fresh_url
                 except Exception as s3_err:
-                    print(f"Failed signing for {platform}: {str(s3_err)}")
+                    print(f"Failed signing for variant {platform}: {str(s3_err)}")
+                    # Skip broken variants instead of crashing the entire response loop
+                    continue
             
             processed_images.append({
                 "user_id": user_id,
@@ -60,7 +73,7 @@ def lambda_handler(event, context):
         })
         
     except Exception as e:
-        print(f"Error: {str(e)}")
+        print(f"CRITICAL ERROR: {str(e)}")
         return create_response(500, {"error": str(e)})
 
 def create_response(status_code, body):
