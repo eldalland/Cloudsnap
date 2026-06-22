@@ -1,12 +1,11 @@
-// Core configuration utility
-import { Amplify } from 'https://esm.sh/aws-amplify@6';
+// Core package contains Amplify and fetchAuthSession
+import { Amplify, fetchAuthSession } from 'https://esm.sh/aws-amplify@6';
 
-// Specific authentication actions for v6
+// Auth package contains your runtime action methods
 import { 
   signInWithRedirect, 
   signOut, 
-  getCurrentUser, 
-  fetchAuthSession 
+  getCurrentUser 
 } from 'https://esm.sh/@aws-amplify/auth@6';
 
 Amplify.configure({
@@ -266,4 +265,19 @@ function displayDownloadButtons(images) {
 }
 
 // Initialize session check execution immediately when page loads
-checkUserSession();
+async function initializeApp() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const authCode = urlParams.get('code');
+
+    if (authCode) {
+        console.log("Detected Cognito Auth Code in URL. Processing callback...");
+        // Clear the URL bar so the code doesn't get re-processed on refresh
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // Now run your session parsing logic
+    await checkUserSession();
+}
+
+// Kick off the application workflow safely
+initializeApp();
