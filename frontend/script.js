@@ -45,10 +45,19 @@ async function initializeApp() {
   }
   
   console.log("✅ Amplify found:", typeof Amplify);
+  console.log("📦 Amplify methods available:", Object.keys(Amplify).slice(0, 20));
+  
+  // The configure method might be under a different location
   const Auth = Amplify.Auth;
+  let configure = Amplify.configure || Amplify.Amplify?.configure;
+  
+  if (!configure) {
+    console.error("❌ Amplify.configure not found. Available keys:", Object.keys(Amplify));
+    return;
+  }
 
 // --- AMPLIFY CONFIGURATION ---
-Amplify.configure({
+configure({
   Auth: {
     Cognito: {
       userPoolId: 'us-east-1_BILlNM20K',
