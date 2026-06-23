@@ -7,9 +7,10 @@ let Auth; // Will be set after Amplify loads
 function loadAmplifyLibrary() {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/aws-amplify/dist/aws-amplify.min.js';
+    script.type = 'module';
+    script.src = 'https://cdn.jsdelivr.net/npm/aws-amplify/dist/aws-amplify.mjs';
     script.onload = () => {
-      console.log("✅ Amplify library loaded");
+      console.log("✅ Amplify v6 library loaded");
       resolve(window.aws_amplify);
     };
     script.onerror = () => {
@@ -23,7 +24,8 @@ function loadAmplifyLibrary() {
 // Get token from Auth session
 async function getCognitoToken() {
   try {
-    const session = await Auth.fetchAuthSession();
+    const { fetchAuthSession } = AmplifyLib.auth;
+    const session = await fetchAuthSession();
     const idToken = session.tokens?.idToken?.toString();
     
     if (!idToken) {
@@ -39,9 +41,10 @@ async function getCognitoToken() {
 }
 
 // Check current user session
-async function checkUserSession() {
+async function checkUserSession(AmplifyLib) {
   try {
-    const user = await Auth.currentAuthenticatedUser();
+    const { getCurrentUser } = AmplifyLib.auth;
+    const user = await getCurrentUser();
     console.log("✅ Current user:", user.username);
     
     // Show logged in view
@@ -57,7 +60,7 @@ async function checkUserSession() {
     if (showUploadBtn) showUploadBtn.classList.remove("hidden");
     if (startUploadBtn) startUploadBtn.classList.remove("hidden");
   } catch (err) {
-    console.log("ℹ️ No user signed in:", err.message);
+    console.log("ℹ️ No user signed in:", err.name || err.message);
     
     // Show logged out view
     const loggedOutView = document.getElementById("loggedOutView");
@@ -82,22 +85,25 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Load Amplify
     const amplifyModule = await loadAmplifyLibrary();
     const { Amplify } = amplifyModule;
-    Auth = amplifyModule.Auth;
 
     console.log("✅ Amplify loaded");
 
     // Configure Amplify
     const amplifyConfig = {
       Auth: {
-        region: 'us-east-1',
-        userPoolId: 'us-east-1_BILlNM20K',
-        userPoolWebClientId: '1gvbhal6ruarketr3oc08s1vph',
-        oauth: {
-          domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
-          scope: ['openid', 'email', 'profile'],
-          redirectSignIn: window.location.origin,
-          redirectSignOut: window.location.origin,
-          responseType: 'code'
+        Cognito: {
+            region: 'us-east-1',
+            userPoolId: 'us-east-1_BILlNM20K',
+            userPoolWebClientId: '1gvbhal6ruarketr3oc08s1vph',
+            loginWith: {
+                oauth: {
+                domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
+                scopes: ['openid', 'email', 'profile'],
+                redirectSignIn: [window.location.origin],
+                redirectSignOut: [window.location.origin],
+                responseType: 'code'
+                }
+            }
         }
       }
     };
@@ -109,13 +115,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
 
+    const { signInWithRedirect, signOut } = amplifyModule.auth;
+
     // Setup login button
     if (loginBtn) {
       loginBtn.addEventListener("click", async (e) => {
         e.preventDefault();
         console.log("� Login clicked - redirecting to Cognito");
         try {
-          await Auth.signInWithRedirect();
+          await signInWithRedirect();
         } catch (err) {
           console.error("❌ Sign in error:", err);
           alert("Login error: " + err.message);
@@ -130,7 +138,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         e.preventDefault();
         console.log("🚪 Logout clicked");
         try {
-          await Auth.signOut();
+          await signOut();
           console.log("✅ User signed out");
           location.reload();
         } catch (err) {
@@ -142,7 +150,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Check session on load
-    await checkUserSession();
+    await checkUserSession(amplifyModule);
     console.log("✅ CloudSnap ready");
 
   } catch (error) {
