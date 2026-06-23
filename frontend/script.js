@@ -1,6 +1,6 @@
-// Load AWS Amplify from official AWS CDN
+// Load AWS Amplify from unpkg CDN
 const amplifyScript = document.createElement('script');
-amplifyScript.src = 'https://cdn.jsdelivr.net/npm/aws-amplify@5.3.0';
+amplifyScript.src = 'https://unpkg.com/aws-amplify@5.3.0/dist/aws-amplify.js';
 amplifyScript.async = true;
 amplifyScript.onload = function() {
   console.log("✅ AWS Amplify loaded successfully");
