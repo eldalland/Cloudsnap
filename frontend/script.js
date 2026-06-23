@@ -1,3 +1,8 @@
+// Wait for Amplify UMD bundle to load
+while (!window.aws_amplify) {
+  await new Promise(resolve => setTimeout(resolve, 50));
+}
+
 // Use global aws_amplify from UMD bundle loaded in index.html
 const { Amplify, Hub } = window.aws_amplify;
 const { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } = window.aws_amplify;

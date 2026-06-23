@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Serverless Photo Sharing and Multi-Platform Image Optimization System</title>
 
-  <!-- Load Amplify via UMD to avoid ESM module duplication issues -->
-  <script src="https://cdn.jsdelivr.net/npm/aws-amplify@6/dist/aws-amplify.min.js"></script>
-  
-  <script type="module" src="script.js"></script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -137,6 +133,12 @@
     <p>Serverless Photo Sharing and Multi-Platform Image Optimization System</p>
     <p>Project Made By: Howie B · Erik Dalland · Jean Cespendes · Ametelwokil Omer </p>
   </footer>
+
+  <!-- Load Amplify via UMD to avoid ESM module duplication issues -->
+  <script src="https://cdn.jsdelivr.net/npm/aws-amplify@6/dist/aws-amplify.min.js"></script>
+  
+  <!-- Load our script after Amplify is available -->
+  <script type="module" src="script.js"></script>
 
 </body>
 </html>
