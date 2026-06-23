@@ -381,9 +381,10 @@ if (uploadBtn) {
       }, index * 700);
     });
     
+    // Wait longer for Step Functions to process images (10 seconds)
     setTimeout(() => {
       retrieveProcessedImages();
-    }, 3800);
+    }, 10000);
   });
 }
 

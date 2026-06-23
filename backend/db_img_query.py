@@ -59,7 +59,8 @@ def lambda_handler(event, context):
             KeyConditionExpression=Key('user_id').eq(user_id)
         )
         records = db_response.get('Items', [])
-        print(f"Found records in DB: {records}")
+        print(f"DynamoDB query result: Found {len(records)} records for user {user_id}")
+        print(f"Raw records: {json.dumps(records, default=str)}")
         
         processed_images = []
         

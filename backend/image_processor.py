@@ -35,9 +35,20 @@ def lambda_handler(event, context):
         print("=== TRACE 3: DOWNLOADING FROM S3 ===")
         response = s3_client.get_object(Bucket=source_bucket, Key=source_key)
         image_data = response['Body'].read()
-        metadata = response.get('Metadata', {})
-        username = metadata.get('user_id')
-        print(f"=== TRACE 4: DOWNLOAD COMPLETE === Size: {len(image_data)} bytes")
+        
+        # Extract username from S3 key path: uploads/{username}/{filename}
+        path_parts = source_key.split('/')
+        if len(path_parts) >= 2 and path_parts[0] == 'uploads':
+            username = path_parts[1]
+        else:
+            # Fallback: try metadata (for backward compatibility)
+            metadata = response.get('Metadata', {})
+            username = metadata.get('user_id')
+        
+        if not username:
+            raise ValueError(f"Unable to extract username from S3 key: {source_key}")
+        
+        print(f"=== TRACE 4: DOWNLOAD COMPLETE === Size: {len(image_data)} bytes, User: {username}")
         
         original_image = Image.open(io.BytesIO(image_data))
         original_image.load()
