@@ -1,11 +1,32 @@
-// Load AWS Amplify from official CDN
-import { Amplify, Auth } from 'https://cdn.jsdelivr.net/npm/aws-amplify@6.0.0/dist/index.mjs';
+// Load AWS Amplify from official AWS CDN
+const amplifyScript = document.createElement('script');
+amplifyScript.src = 'https://cdn.jsdelivr.net/npm/aws-amplify@5.3.0';
+amplifyScript.async = true;
+amplifyScript.onload = function() {
+  console.log("✅ AWS Amplify loaded successfully");
+  setupApp();
+};
+amplifyScript.onerror = function() {
+  console.error("❌ Failed to load AWS Amplify from CDN");
+};
+document.head.appendChild(amplifyScript);
 
-console.log("✅ AWS Amplify modules imported successfully");
+// Setup app once Amplify is loaded and DOM is ready
+async function setupApp() {
+  // Wait for DOM to be ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+  } else {
+    await initializeApp();
+  }
+}
 
-// Wait for DOM to be ready before doing anything
-document.addEventListener('DOMContentLoaded', async function() {
-  console.log("🚀 DOM Content Loaded - Starting CloudSnap application");
+async function initializeApp() {
+  console.log("🚀 Initializing CloudSnap application...");
+  
+  // Now Amplify is available globally
+  const { Amplify } = window;
+  const Auth = Amplify.Auth;
 
 // --- AMPLIFY CONFIGURATION ---
 Amplify.configure({
@@ -38,9 +59,6 @@ Amplify.configure({
 
 console.log("✅ Amplify configured successfully");
 
-// Get Auth methods from Amplify
-const { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } = Auth;
-
 // DOM Element Selectors - NOW SAFE because DOM is loaded
 const input = document.getElementById("imageInput");
 const fileName = document.getElementById("fileName");
@@ -67,6 +85,9 @@ console.log("  - Login button:", loginBtn);
 console.log("  - Logout button:", logoutBtn);
 console.log("  - loggedOutView:", loggedOutView);
 console.log("  - loggedInView:", loggedInView);
+
+// Get Auth methods
+const { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } = Auth;
 
 // --- AUTHENTICATION FLOW MANAGEMENT ---
 
@@ -315,7 +336,7 @@ function displayDownloadButtons(images) {
 }
 
 // Initialize session check execution immediately when page loads
-async function initializeApp() {
+async function processAuthCallback() {
     const urlParams = new URLSearchParams(window.location.search);
     const authCode = urlParams.get('code');
 
@@ -330,6 +351,6 @@ async function initializeApp() {
 }
 
 // Kick off the application workflow safely
-await initializeApp();
+await processAuthCallback();
 
-}); // Close DOMContentLoaded event listener
+} // Close initializeApp function
