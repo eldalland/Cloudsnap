@@ -13,6 +13,10 @@ table = dynamodb.Table(TABLE_NAME)
 CLOUDFRONT_ASSET_DOMAIN = "https://d15kfhgeq0idge.cloudfront.net"
 
 def lambda_handler(event, context):
+    # Handle OPTIONS preflight requests for CORS
+    if event.get('httpMethod') == 'OPTIONS':
+        return create_response(200, {"message": "CORS preflight successful"})
+    
     try:
         # 1. EXTRACT USERNAME SECURELY FROM COGNITO CONTEXT
         try:

@@ -5,6 +5,10 @@ from botocore.exceptions import ClientError
 from botocore.config import Config
 
 def lambda_handler(event, context):
+    # Handle OPTIONS preflight requests for CORS
+    if event.get('httpMethod') == 'OPTIONS':
+        return create_response(200, {"message": "CORS preflight successful"})
+    
     # 1. Grab the bucket name from environment variables
     bucket_name = os.environ.get('USER_UPLOAD_BUCKET')
     
