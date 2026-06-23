@@ -218,6 +218,21 @@ async function getCognitoToken() {
     alert("Session expired. Please log in.");
     return null;
   }
+  
+  // Debug: Log token details
+  try {
+    const payload = JSON.parse(atob(idToken.split('.')[1]));
+    console.log("📝 Token payload:", {
+      aud: payload.aud,
+      client_id: payload.client_id,
+      'cognito:username': payload['cognito:username'],
+      exp: new Date(payload.exp * 1000).toISOString(),
+      iss: payload.iss
+    });
+  } catch (e) {
+    console.error("❌ Failed to decode token:", e);
+  }
+  
   return idToken;
 }
 
