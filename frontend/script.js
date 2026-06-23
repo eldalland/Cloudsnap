@@ -36,25 +36,16 @@ async function setupApp() {
 async function initializeApp() {
   console.log("🚀 Initializing CloudSnap application...");
   
-  // Debug: Check what's in window
-  console.log("📦 Window object keys:", Object.keys(window).filter(k => k.includes('aws') || k.includes('amplify') || k.includes('Amplify')));
-  
-  // Try different ways to access Amplify
-  let Amplify = window.Amplify || window.aws?.Amplify;
+  // AWS Amplify from jsDelivr is exposed as 'aws_amplify'
+  const Amplify = window.aws_amplify;
   
   if (!Amplify) {
-    console.error("❌ Amplify not found in window object");
-    console.log("Available in window:", {
-      hasAmplify: 'Amplify' in window,
-      hasAws: 'aws' in window,
-      amplifyValue: window.Amplify,
-      awsValue: window.aws
-    });
+    console.error("❌ aws_amplify not found in window object");
     return;
   }
   
   console.log("✅ Amplify found:", typeof Amplify);
-  const Auth = Amplify.Auth || window.AmazonCognitoIdentity;
+  const Auth = Amplify.Auth;
 
 // --- AMPLIFY CONFIGURATION ---
 Amplify.configure({
