@@ -1,19 +1,19 @@
 // CloudSnap - Amplify Cognito Authentication
 console.log("🚀 CloudSnap initializing...");
 
-let Amplify, Auth;
+let Auth; // Will be set after Amplify loads
 
-// Load Amplify library via UMD bundle
+// Load Amplify library
 function loadAmplifyLibrary() {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/aws-amplify@5.3.0/dist/aws-amplify.min.js';
+    script.src = 'https://cdn.jsdelivr.net/npm/aws-amplify/dist/aws-amplify.min.js';
     script.onload = () => {
       console.log("✅ Amplify library loaded");
       resolve(window.aws_amplify);
     };
     script.onerror = () => {
-      console.error("❌ Failed to load Amplify from CDN");
+      console.error("❌ Failed to load Amplify");
       reject(new Error("Failed to load Amplify"));
     };
     document.head.appendChild(script);
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   try {
     // Load Amplify
     const amplifyModule = await loadAmplifyLibrary();
-    Amplify = amplifyModule.Amplify;
+    const { Amplify } = amplifyModule;
     Auth = amplifyModule.Auth;
 
     console.log("✅ Amplify loaded");
