@@ -113,8 +113,12 @@ console.log("  - Logout button:", logoutBtn);
 console.log("  - loggedOutView:", loggedOutView);
 console.log("  - loggedInView:", loggedInView);
 
+// Debug: Check what's available on Auth
+console.log("📦 Auth object:", typeof Auth);
+console.log("📦 Auth methods available:", Object.getOwnPropertyNames(Auth).slice(0, 30));
+console.log("📦 Auth prototype:", Object.getOwnPropertyNames(Object.getPrototypeOf(Auth)).slice(0, 30));
+
 // Get Auth methods from the Auth object
-console.log("📦 Auth object available:", typeof Auth, Auth);
 const signInWithRedirect = Auth.signInWithRedirect;
 const signOut = Auth.signOut;
 const getCurrentUser = Auth.getCurrentUser;
