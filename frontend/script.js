@@ -1,13 +1,13 @@
-// Pull Amplify from the core package
-import { Amplify } from 'https://esm.sh/aws-amplify@6';
+// 1. Pull the core framework manager
+import { Amplify } from 'https://esm.sh/aws-amplify@6.20.0';
 
-// Pull your actions from the unified subpath module so they share configuration state
+// 2. Pull the methods using the exact matching root version path
 import { 
   signInWithRedirect, 
   signOut, 
   getCurrentUser, 
   fetchAuthSession 
-} from 'https://esm.sh/aws-amplify@6/auth';
+} from 'https://esm.sh/aws-amplify@6.20.0/auth';
 
 // --- CONFIGURATION ---
 Amplify.configure({
