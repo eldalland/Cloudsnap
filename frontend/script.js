@@ -1,5 +1,5 @@
 import '@aws-amplify/auth/enable-oauth-listener';
-import { Amplify } from '@aws-amplify/core';
+import { Amplify, Hub } from '@aws-amplify/core';
 import { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } from '@aws-amplify/auth';
 
 Amplify.configure({
@@ -34,26 +34,58 @@ async function getCognitoToken() {
   }
 }
 
+// Show UI for authenticated user
+function showLoggedInUI(username) {
+  document.getElementById("loggedOutView")?.classList.add("hidden");
+  document.getElementById("loggedInView")?.classList.remove("hidden");
+  const userEl = document.getElementById("loggedInUser");
+  if (userEl) userEl.textContent = username;
+  document.getElementById("showUploadBtn")?.classList.remove("hidden");
+  document.getElementById("startUploadBtn")?.classList.remove("hidden");
+  const greeting = document.getElementById("navGreeting");
+  if (greeting) {
+    greeting.textContent = `Hello, ${username}`;
+    greeting.classList.remove("hidden");
+  }
+  console.log("✅ Logged in UI shown for:", username);
+}
+
+// Show UI for unauthenticated user
+function showLoggedOutUI() {
+  document.getElementById("loggedOutView")?.classList.remove("hidden");
+  document.getElementById("loggedInView")?.classList.add("hidden");
+  document.getElementById("upload")?.classList.add("hidden");
+  document.getElementById("showUploadBtn")?.classList.add("hidden");
+  document.getElementById("startUploadBtn")?.classList.add("hidden");
+  const greeting = document.getElementById("navGreeting");
+  if (greeting) {
+    greeting.textContent = "";
+    greeting.classList.add("hidden");
+  }
+  console.log("ℹ️ Logged out UI shown");
+}
+
 // Check current user session
-async function checkUserSession() { // ✅ No arguments needed
+async function checkUserSession() {
   try {
-    const user = await getCurrentUser(); // ✅ Uses imported function directly
+    const user = await getCurrentUser();
     console.log("✅ Current user:", user.username);
-    
-    document.getElementById("loggedOutView")?.classList.add("hidden");
-    document.getElementById("loggedInView")?.classList.remove("hidden");
-    document.getElementById("loggedInUser").textContent = user.username;
-    document.getElementById("showUploadBtn")?.classList.remove("hidden");
-    document.getElementById("startUploadBtn")?.classList.remove("hidden");
+    showLoggedInUI(user.username);
   } catch (err) {
-    console.log("ℹ️ No user signed in");
-    document.getElementById("loggedOutView")?.classList.remove("hidden");
-    document.getElementById("loggedInView")?.classList.add("hidden");
-    document.getElementById("upload")?.classList.add("hidden");
-    document.getElementById("showUploadBtn")?.classList.add("hidden");
-    document.getElementById("startUploadBtn")?.classList.add("hidden");
+    console.log("ℹ️ No user signed in yet");
+    showLoggedOutUI();
   }
 }
+
+// Listen for Hub auth events (fires after OAuth code exchange completes)
+Hub.listen('auth', ({ payload }) => {
+  console.log("🔔 Hub auth event:", payload.event);
+  if (payload.event === 'signedIn') {
+    getCurrentUser().then(user => showLoggedInUI(user.username)).catch(() => {});
+  } else if (payload.event === 'signedOut') {
+    showLoggedOutUI();
+  }
+});
 
     // Get DOM elements
     const loginBtn = document.getElementById("loginBtn");
