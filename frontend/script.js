@@ -45,46 +45,19 @@ async function initializeApp() {
   }
   
   console.log("✅ aws_amplify found:", typeof awsAmplify);
-  
-  // The actual Amplify class is inside aws_amplify
-  const Amplify = awsAmplify.Amplify;
-  const Auth = awsAmplify.Auth;
-  
-  if (!Amplify) {
-    console.error("❌ Amplify class not found");
-    return;
-  }
+console.log("⚠️  Skipping Amplify.configure() - using direct Cognito redirect instead");
 
-// --- AMPLIFY CONFIGURATION ---
-Amplify.configure({
-  Auth: {
-    Cognito: {
-      userPoolId: 'us-east-1_BILlNM20K',
-      userPoolClientId: '1gvbhal6ruarketr3oc08s1vph',
-      loginWith: {
-        oauth: {
-          domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com', 
-          scopes: ['openid', 'email', 'profile'],
-          redirectSignIn: [
-            'https://d27xgyz8l8wwy4.cloudfront.net',
-            'https://d27xgyz8l8wwy4.cloudfront.net/',
-            'http://serverless-photo-website-group6.s3-website-us-east-1.amazonaws.com',
-            'http://localhost:3000'
-          ], 
-          redirectSignOut: [
-            'https://d27xgyz8l8wwy4.cloudfront.net',
-            'https://d27xgyz8l8wwy4.cloudfront.net/',
-            'http://serverless-photo-website-group6.s3-website-us-east-1.amazonaws.com',
-            'http://localhost:3000'
-          ],
-          responseType: 'code' 
-        }
-      }
-    }
-  }
-});
+// We'll skip Amplify configuration and use direct OAuth flow
+// Store the config for later use
+const cognitoConfig = {
+  userPoolId: 'us-east-1_BILlNM20K',
+  userPoolClientId: '1gvbhal6ruarketr3oc08s1vph',
+  domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
+  redirectSignIn: 'http://localhost:3000',
+  scopes: ['openid', 'email', 'profile']
+};
 
-console.log("✅ Amplify configured successfully");
+console.log("✅ Cognito config loaded:", cognitoConfig);
 
 // DOM Element Selectors - NOW SAFE because DOM is loaded
 const input = document.getElementById("imageInput");
@@ -114,25 +87,11 @@ console.log("  - loggedOutView:", loggedOutView);
 console.log("  - loggedInView:", loggedInView);
 
 // Debug: Check what's available on Auth
-console.log("📦 Auth object:", typeof Auth);
-console.log("📦 Auth methods available:", Object.getOwnPropertyNames(Auth).slice(0, 30));
-console.log("📦 Auth prototype:", Object.getOwnPropertyNames(Object.getPrototypeOf(Auth)).slice(0, 30));
+console.log("📦 Auth object:", typeof awsAmplify.Auth);
 
-// Since this is an older version of Amplify, we'll use the available methods
-// signIn will redirect to Cognito for OAuth
-const authMethods = {
-  signIn: Auth.signIn,
-  signOut: Auth.signOut,
-  getCurrentUser: Auth.getCurrentUser,
-  userPool: Auth.userPool
-};
-
-console.log("✅ Auth methods available:", {
-  signIn: typeof authMethods.signIn,
-  signOut: typeof authMethods.signOut,
-  getCurrentUser: typeof authMethods.getCurrentUser,
-  userPool: typeof authMethods.userPool
-});
+// Since this is an older version of Amplify, we'll use direct Cognito methods
+// Store Auth for reference but we won't use Amplify's configuration
+const Auth = awsAmplify.Auth;
 
 // --- AUTHENTICATION FLOW MANAGEMENT ---
 
@@ -140,16 +99,14 @@ console.log("✅ Auth methods available:", {
 if (loginBtn) {
   loginBtn.addEventListener("click", async (e) => {
     e.preventDefault();
-    console.log("🔐 Login button CLICKED! Initiating sign in...");
+    console.log("🔐 Login button CLICKED! Initiating Cognito OAuth...");
     try {
-      // Use the config values we set up
-      const clientId = '1gvbhal6ruarketr3oc08s1vph';
-      const domain = 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com';
-      const redirectUri = 'http://localhost:3000'; // or use window.location.origin for current domain
+      // Use the config
+      const { domain, userPoolClientId, redirectSignIn, scopes } = cognitoConfig;
       const responseType = 'code';
-      const scope = 'openid email profile';
+      const scope = scopes.join(' ');
       
-      const cognitoLoginUrl = `https://${domain}/login?client_id=${clientId}&response_type=${responseType}&scope=${scope}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+      const cognitoLoginUrl = `https://${domain}/login?client_id=${userPoolClientId}&response_type=${responseType}&scope=${scope}&redirect_uri=${encodeURIComponent(redirectSignIn)}`;
       console.log("🔗 Redirecting to Cognito login...");
       window.location.href = cognitoLoginUrl;
     } catch (err) {
