@@ -14,7 +14,7 @@ Amplify.configure({
   Auth: {
     Cognito: {
       userPoolId: 'us-east-1_BILlNM20K',
-      userPoolClientId: '3s19gm75adqtebvq0p8bgbta8a',
+      userPoolClientId: '1gvbhal6ruarketr3oc08s1vph',
       loginWith: {
         oauth: {
           domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com', 
