@@ -1,23 +1,17 @@
-import 'aws-amplify/auth/enable-oauth-listener';
+import { Amplify } from '@aws-amplify/core';
+import 'aws-amplify/auth/enable-oauth-listener'; // Keep this first
+import { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession, Hub } from '@aws-amplify/auth';
 
-import { Amplify } from 'aws-amplify';
-import { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
-import { Hub } from 'aws-amplify/utils';
-
-console.log("🚀 Initializing CloudSnap");
-
-// 3. Configure Amplify
 Amplify.configure({
   Auth: {
     Cognito: {
-      region: 'us-east-1',
       userPoolId: 'us-east-1_BILlNM20K',
       userPoolClientId: '1gvbhal6ruarketr3oc08s1vph',
       loginWith: {
         oauth: {
           domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
           scopes: ['openid', 'email', 'profile'],
-          redirectSignIn: [window.location.origin],
+          redirectSignIn: [window.location.origin], // Uses your CloudFront URL
           redirectSignOut: [window.location.origin],
           responseType: 'code'
         }
