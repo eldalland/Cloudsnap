@@ -9,6 +9,9 @@ import io
 s3_client = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')
 
+# CloudFront distribution for serving processed images
+CLOUDFRONT_ASSET_DOMAIN = "https://d15kfhgeq0idge.cloudfront.net"
+
 RESIZE_CONFIGS = {
     "facebook": (1200, 630),
     "instagram": (1080, 1080),
@@ -76,7 +79,8 @@ def lambda_handler(event, context):
                 ContentType=response['ContentType'],
                 ContentDisposition='attachment'
             )
-            resized_urls[platform] = f"https://{processed_bucket}.s3.amazonaws.com/{destination_key}"
+            # Use CloudFront URL instead of direct S3 URL
+            resized_urls[platform] = f"{CLOUDFRONT_ASSET_DOMAIN}/{destination_key}"
             
         print("=== TRACE 6: WRITING TO DYNAMODB ===")
         
