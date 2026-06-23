@@ -1,13 +1,5 @@
-// 1. Pull the core framework manager
-import { Amplify } from 'https://esm.sh/aws-amplify@6.20.0';
-
-// 2. Pull the methods using the exact matching root version path
-import { 
-  signInWithRedirect, 
-  signOut, 
-  getCurrentUser, 
-  fetchAuthSession 
-} from 'https://esm.sh/aws-amplify@6.20.0/auth';
+// Load AWS Amplify from official CDN
+import { Amplify, Auth } from 'https://cdn.jsdelivr.net/npm/aws-amplify@6.0.0/dist/index.mjs';
 
 console.log("✅ AWS Amplify modules imported successfully");
 
@@ -45,6 +37,9 @@ Amplify.configure({
 });
 
 console.log("✅ Amplify configured successfully");
+
+// Get Auth methods from Amplify
+const { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } = Auth;
 
 // DOM Element Selectors - NOW SAFE because DOM is loaded
 const input = document.getElementById("imageInput");
