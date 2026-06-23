@@ -64,7 +64,7 @@
     <section id="downloadsContainer" class="card downloads-card hidden">
       </section>
 
-    <section class="preview-section">
+    <!-- <section class="preview-section">
       <br><br><br><br>
       <h2>Multi-Platform Image Preview</h2><br>
       <div class="preview-grid">
@@ -79,7 +79,8 @@
           <p>Resized by Lambda for Facebook, Instagram, LinkedIn, and Website.</p>
         </div>
       </div>
-    </section>
+    </section> -->
+  
 
     <section class="platforms">
       <h2>Resize Targets</h2>
@@ -102,11 +103,9 @@
         <span>→</span>
         <div>S3</div>
         <span>→</span>
-        <div>Step Functions</div>
+        <div>Dynamo DB</div>
         <span>→</span>
         <div>CloudFront</div>
-        <span>→</span>
-        <div>SNS</div>
       </div>
     </section>
 
@@ -117,9 +116,9 @@
         <div><strong>Amazon API Gateway</strong><p>Receives image upload requests.</p></div>
         <div><strong>AWS Lambda</strong><p>Processes and resizes images automatically.</p></div>
         <div><strong>Amazon S3</strong><p>Stores original and optimized images.</p></div>
-        <div><strong>AWS Step Functions</strong><p>Orchestrates multi-platform image resizing.</p></div>
+        <div><strong>AWS Dynamo DB</strong><p>Storage of image metdadata.</p></div>
         <div><strong>Amazon CloudFront</strong><p>Delivers optimized images globally.</p></div>
-        <div><strong>Amazon SNS</strong><p>Sends email completion notifications.</p></div>
+        <div><strong>Amazon KMS</strong><p>Encryption of s3 and DB data at rest.</p></div>
         <div><strong>Amazon CloudWatch</strong><p>Monitors logs, errors, and performance.</p></div>
       </div>
     </section>

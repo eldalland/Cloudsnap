@@ -494,6 +494,14 @@ function displayDownloadButtons(images) {
   images.forEach((image, index) => {
     const imageDiv = document.createElement('div');
     imageDiv.className = 'image-download-card';
+    let displayName = `(ID: ${image.photo_id.substring(0, 8)}...)`
+    if (image.variants && image.variants.website) {
+      const urlParts = image.variants.website.split('/website/');
+      if (urlParts.length > 1) {
+        displayName = decodeURIComponent(urlParts[1]); // Decodes %20 or special characters back to readable text
+      }
+    }
+
     imageDiv.innerHTML = `
       <p><strong>Photo ${index + 1}</strong> (ID: ${image.photo_id.substring(0, 8)}...)</p>
       <div class="variant-buttons">
