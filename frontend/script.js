@@ -1,7 +1,9 @@
+import 'https://cdn.jsdelivr.net/npm/aws-amplify/auth/enable-oauth-listener/+esm';
+
 import { Amplify } from 'https://cdn.jsdelivr.net/npm/aws-amplify@6/+esm';
 import { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } from 'https://cdn.jsdelivr.net/npm/aws-amplify/auth/+esm';
 import { Hub } from 'https://cdn.jsdelivr.net/npm/aws-amplify/utils/+esm';
-import 'https://cdn.jsdelivr.net/npm/aws-amplify/auth/enable-oauth-listener/+esm';
+
 
 console.log("🚀 DOM ready - initializing CloudSnap");
 
