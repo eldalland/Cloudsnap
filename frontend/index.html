@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Serverless Photo Sharing and Multi-Platform Image Optimization System</title>
 
-  <!-- Load and configure Amplify BEFORE the main script -->
+  <!-- Configure Amplify BEFORE loading OAuth listener -->
   <script type="module">
     import { Amplify } from 'https://esm.sh/@aws-amplify/core@6.16.2';
     
+    // Configure FIRST
     Amplify.configure({
       Auth: {
         Cognito: {
@@ -27,12 +28,16 @@
       }
     });
     
-    console.log("✅ Amplify pre-configured in HTML");
+    console.log("✅ Amplify configured");
     
-    // Load OAuth listener after config
-    import('https://esm.sh/@aws-amplify/auth@6.20.0/enable-oauth-listener?deps=@aws-amplify/core@6.16.2').then(() => {
-      console.log("✅ OAuth listener enabled");
-    });
+    // Store config in window so OAuth listener can use it
+    window.__AMPLIFY_CONFIGURED__ = true;
+  </script>
+  
+  <!-- NOW load the OAuth listener - it will use the config above -->
+  <script type="module">
+    await import('https://esm.sh/@aws-amplify/auth@6.20.0/enable-oauth-listener?deps=@aws-amplify/core@6.16.2');
+    console.log("✅ OAuth listener loaded");
   </script>
 
   <script type="importmap">
