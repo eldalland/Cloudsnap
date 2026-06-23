@@ -81,10 +81,11 @@ async function checkUserSession() {
 function clearAmplifyOAuthState() {
   const clientId = '1gvbhal6ruarketr3oc08s1vph';
   const prefix = `CognitoIdentityServiceProvider.${clientId}`;
-  ['inflightOAuth', 'oauthSignIn', 'oauthPKCE', 'oauthState'].forEach(key => {
-    localStorage.removeItem(`${prefix}.${key}`);
-  });
-  localStorage.removeItem('amplify-signin-with-hostedUI');
+  // Only clear OAuth-specific keys, NOT auth tokens or config
+  sessionStorage.removeItem(`${prefix}.inflightOAuth`);
+  sessionStorage.removeItem(`${prefix}.oauthPKCE`);
+  sessionStorage.removeItem(`${prefix}.oauthState`);
+  sessionStorage.removeItem('amplify-signin-with-hostedUI');
   console.log("🧹 Cleared stale Amplify OAuth state");
 }
 
