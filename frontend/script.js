@@ -142,20 +142,16 @@ if (loginBtn) {
     e.preventDefault();
     console.log("🔐 Login button CLICKED! Initiating sign in...");
     try {
-      console.log("🔄 Opening Cognito login...");
-      // Trigger the Cognito hosted UI login
-      const { userPool } = Auth;
-      if (userPool && userPool.cognitoIdentityServiceProvider) {
-        // Get the client ID from the configuration
-        const clientId = userPool.clientId || '1gvbhal6ruarketr3oc08s1vph';
-        const domain = 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com';
-        const redirectUri = window.location.origin;
-        const cognitoLoginUrl = `https://${domain}/login?client_id=${clientId}&response_type=code&scope=openid+email+profile&redirect_uri=${redirectUri}`;
-        console.log("🔗 Redirecting to:", cognitoLoginUrl);
-        window.location.href = cognitoLoginUrl;
-      } else {
-        console.error("❌ User pool not configured");
-      }
+      // Direct redirect to Cognito hosted UI
+      const clientId = '1gvbhal6ruarketr3oc08s1vph';
+      const domain = 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com';
+      const redirectUri = window.location.origin;
+      const responseType = 'code';
+      const scope = 'openid email profile';
+      
+      const cognitoLoginUrl = `https://${domain}/login?client_id=${clientId}&response_type=${responseType}&scope=${scope}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+      console.log("🔗 Redirecting to Cognito login...");
+      window.location.href = cognitoLoginUrl;
     } catch (err) {
       console.error("❌ Login failed:", err);
       alert("Login failed: " + err.message);
