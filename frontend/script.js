@@ -1,11 +1,12 @@
+import 'aws-amplify/auth/enable-oauth-listener';
+
 import { Amplify } from 'aws-amplify';
 import { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import { Hub } from 'aws-amplify/utils';
-import 'aws-amplify/auth/enable-oauth-listener';
 
 console.log("🚀 Initializing CloudSnap");
 
-// Configure Amplify
+// 3. Configure Amplify
 Amplify.configure({
   Auth: {
     Cognito: {
