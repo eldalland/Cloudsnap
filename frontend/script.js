@@ -293,10 +293,19 @@ async function checkUserSession() {
 
 // Get DOM elements
 const loginBtn = document.getElementById("loginBtn");
+const loginBtnNav = document.getElementById("loginBtnNav");
 const logoutBtn = document.getElementById("logoutBtn");
 
 if (loginBtn) {
   loginBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    console.log("🔑 Login button clicked");
+    await signIn();
+  });
+}
+
+if (loginBtnNav) {
+  loginBtnNav.addEventListener("click", async (e) => {
     e.preventDefault();
     console.log("🔑 Login button clicked");
     await signIn();
