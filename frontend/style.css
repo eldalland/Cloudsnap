@@ -439,14 +439,18 @@ h1 {
 
 main {
   width: min(1150px, 92%);
-  margin: -65px auto 0;
+  margin: 0 auto;
+  /* 1. Force a mandatory 80px buffer zone below your hero content */
+  padding-top: 80px; 
+  /* 2. Stop any internal elements from collapsing margins upward */
+  display: flow-root; 
+  position: relative;
 }
 
 .hidden {
   display: none !important;
 }
 
-/* Glassmorphism Structural Containers */
 .card, .preview-card, .workflow, .services, .platforms, .auth-card {
   background: var(--card);
   border: 1px solid rgba(255,255,255,.18);
@@ -456,6 +460,8 @@ main {
   -webkit-backdrop-filter: blur(16px);
   box-shadow: 0 22px 60px rgba(0,0,0,.25);
   margin-bottom: 28px;
+  /* 3. Keep layout dimensions locked perfectly inline */
+  box-sizing: border-box; 
 }
 
 /* Authentication Layout System */
