@@ -9,7 +9,7 @@ import {
   fetchAuthSession 
 } from 'https://esm.sh/aws-amplify@6.20.0/auth';
 
-// --- CONFIGURATION ---
+// --- AMPLIFY CONFIGURATION ---
 Amplify.configure({
   Auth: {
     Cognito: {
@@ -38,34 +38,7 @@ Amplify.configure({
   }
 });
 
-// --- CONFIGURATION ---
-Amplify.configure({
-  Auth: {
-    Cognito: {
-      userPoolId: 'us-east-1_BILlNM20K',
-      userPoolClientId: '1gvbhal6ruarketr3oc08s1vph',
-      loginWith: {
-        oauth: {
-          domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com', 
-          scopes: ['openid', 'email', 'profile'],
-          redirectSignIn: [
-            'https://d27xgyz8l8wwy4.cloudfront.net',
-            'https://d27xgyz8l8wwy4.cloudfront.net/',
-            'http://serverless-photo-website-group6.s3-website-us-east-1.amazonaws.com',
-            'http://localhost:3000'
-          ], 
-          redirectSignOut: [
-            'https://d27xgyz8l8wwy4.cloudfront.net',
-            'https://d27xgyz8l8wwy4.cloudfront.net/',
-            'http://serverless-photo-website-group6.s3-website-us-east-1.amazonaws.com',
-            'http://localhost:3000'
-          ],
-          responseType: 'code' 
-        }
-      }
-    }
-  }
-});
+console.log("✅ Amplify configured successfully");
 
 // DOM Element Selectors
 const input = document.getElementById("imageInput");
@@ -91,8 +64,33 @@ const API_GATEWAY_URL = "https://cco10loarj.execute-api.us-east-1.amazonaws.com"
 // --- AUTHENTICATION FLOW MANAGEMENT ---
 
 // Wire up login/logout redirect interactions
-if (loginBtn) loginBtn.addEventListener("click", () => signInWithRedirect());
-if (logoutBtn) logoutBtn.addEventListener("click", () => signOut());
+console.log("🔍 Checking login button element:", loginBtn);
+console.log("🔍 signInWithRedirect function exists:", typeof signInWithRedirect);
+
+if (loginBtn) {
+  loginBtn.addEventListener("click", async () => {
+    console.log("🔐 Login button clicked!");
+    try {
+      await signInWithRedirect();
+    } catch (err) {
+      console.error("❌ Login failed:", err);
+      alert("Login failed: " + err.message);
+    }
+  });
+} else {
+  console.error("❌ Login button element not found!");
+}
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    console.log("🚪 Logout button clicked!");
+    try {
+      await signOut();
+    } catch (err) {
+      console.error("❌ Logout failed:", err);
+    }
+  });
+}
 
 // Evaluates the user's active session state on page load
 async function checkUserSession() {
