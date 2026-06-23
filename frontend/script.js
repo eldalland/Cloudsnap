@@ -1,13 +1,39 @@
-// Pull the base utility from the core library
-import { Amplify } from 'https://esm.sh/aws-amplify@6';
-
-// Pull ALL your authentication actions from the auth subpath bundle
 import { 
+  Amplify, 
   signInWithRedirect, 
   signOut, 
   getCurrentUser, 
   fetchAuthSession 
-} from 'https://esm.sh/@aws-amplify/auth@6';
+} from 'https://esm.sh/aws-amplify@6';
+
+// --- CONFIGURATION ---
+Amplify.configure({
+  Auth: {
+    Cognito: {
+      userPoolId: 'us-east-1_BILlNM20K',
+      userPoolClientId: '1gvbhal6ruarketr3oc08s1vph',
+      loginWith: {
+        oauth: {
+          domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com', 
+          scopes: ['openid', 'email', 'profile'],
+          redirectSignIn: [
+            'https://d27xgyz8l8wwy4.cloudfront.net',
+            'https://d27xgyz8l8wwy4.cloudfront.net/',
+            'http://serverless-photo-website-group6.s3-website-us-east-1.amazonaws.com',
+            'http://localhost:3000'
+          ], 
+          redirectSignOut: [
+            'https://d27xgyz8l8wwy4.cloudfront.net',
+            'https://d27xgyz8l8wwy4.cloudfront.net/',
+            'http://serverless-photo-website-group6.s3-website-us-east-1.amazonaws.com',
+            'http://localhost:3000'
+          ],
+          responseType: 'code' 
+        }
+      }
+    }
+  }
+});
 
 // --- CONFIGURATION ---
 Amplify.configure({
