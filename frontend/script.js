@@ -1,45 +1,224 @@
-// Wait for Amplify UMD bundle to load
-while (!window.aws_amplify) {
-  await new Promise(resolve => setTimeout(resolve, 50));
+// ========== COGNITO OAUTH CONFIGURATION ==========
+const COGNITO_CONFIG = {
+  domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
+  clientId: '1gvbhal6ruarketr3oc08s1vph',
+  redirectUri: window.location.origin,
+  scope: 'openid email profile',
+  region: 'us-east-1',
+  userPoolId: 'us-east-1_BILlNM20K'
+};
+
+// ========== OAUTH HELPER FUNCTIONS ==========
+
+// Generate random string for PKCE
+function generateRandomString(length) {
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  let result = '';
+  const randomValues = new Uint8Array(length);
+  crypto.getRandomValues(randomValues);
+  for (let i = 0; i < length; i++) {
+    result += charset[randomValues[i] % charset.length];
+  }
+  return result;
 }
 
-// Use global aws_amplify from UMD bundle loaded in index.html
-const { Amplify, Hub } = window.aws_amplify;
-const { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } = window.aws_amplify;
+// SHA256 hash for PKCE
+async function sha256(plain) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(plain);
+  return await crypto.subtle.digest('SHA-256', data);
+}
 
-// Configure Amplify
-Amplify.configure({
-  Auth: {
-    Cognito: {
-      userPoolId: 'us-east-1_BILlNM20K',
-      userPoolClientId: '1gvbhal6ruarketr3oc08s1vph',
-      loginWith: {
-        oauth: {
-          domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
-          scopes: ['openid', 'email', 'profile'],
-          redirectSignIn: [window.location.origin],
-          redirectSignOut: [window.location.origin],
-          responseType: 'code'
-        }
-      }
-    }
+// Base64 URL encode
+function base64UrlEncode(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
   }
-});
+  return btoa(binary)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+}
 
-console.log("✅ Amplify configured with UMD bundle");
+// Generate PKCE challenge
+async function generatePKCE() {
+  const verifier = generateRandomString(128);
+  const hashed = await sha256(verifier);
+  const challenge = base64UrlEncode(hashed);
+  return { verifier, challenge };
+}
 
-// Get token from Auth session
-async function getCognitoToken() {
+// Initiate OAuth login
+async function signIn() {
   try {
-    const session = await fetchAuthSession();
-    const idToken = session.tokens?.idToken?.toString();
-    if (!idToken) throw new Error("No active credentials");
-    return idToken;
+    const { verifier, challenge } = await generatePKCE();
+    const state = generateRandomString(32);
+    
+    // Store PKCE verifier and state
+    sessionStorage.setItem('pkce_verifier', verifier);
+    sessionStorage.setItem('oauth_state', state);
+    
+    // Build OAuth authorization URL
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: COGNITO_CONFIG.clientId,
+      redirect_uri: COGNITO_CONFIG.redirectUri,
+      scope: COGNITO_CONFIG.scope,
+      state: state,
+      code_challenge: challenge,
+      code_challenge_method: 'S256'
+    });
+    
+    const authUrl = `https://${COGNITO_CONFIG.domain}/oauth2/authorize?${params}`;
+    console.log("🔑 Redirecting to Cognito login...");
+    window.location.href = authUrl;
   } catch (err) {
-    console.error("❌ Auth Error:", err);
+    console.error("❌ Login error:", err);
+  }
+}
+
+// Handle OAuth callback
+async function handleCallback() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get('code');
+  const state = urlParams.get('state');
+  const error = urlParams.get('error');
+  
+  if (error) {
+    console.error("❌ OAuth error:", error, urlParams.get('error_description'));
+    return false;
+  }
+  
+  if (!code) {
+    return false; // Not a callback
+  }
+  
+  // Verify state
+  const savedState = sessionStorage.getItem('oauth_state');
+  if (state !== savedState) {
+    console.error("❌ State mismatch - possible CSRF attack");
+    return false;
+  }
+  
+  console.log("✅ OAuth callback received, exchanging code for tokens...");
+  
+  // Exchange code for tokens
+  const verifier = sessionStorage.getItem('pkce_verifier');
+  const tokenParams = new URLSearchParams({
+    grant_type: 'authorization_code',
+    client_id: COGNITO_CONFIG.clientId,
+    code: code,
+    redirect_uri: COGNITO_CONFIG.redirectUri,
+    code_verifier: verifier
+  });
+  
+  try {
+    const response = await fetch(`https://${COGNITO_CONFIG.domain}/oauth2/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: tokenParams
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error("❌ Token exchange failed:", errorData);
+      return false;
+    }
+    
+    const tokens = await response.json();
+    console.log("✅ Tokens received");
+    
+    // Store tokens
+    localStorage.setItem('id_token', tokens.id_token);
+    localStorage.setItem('access_token', tokens.access_token);
+    if (tokens.refresh_token) {
+      localStorage.setItem('refresh_token', tokens.refresh_token);
+    }
+    
+    // Clean up OAuth state
+    sessionStorage.removeItem('pkce_verifier');
+    sessionStorage.removeItem('oauth_state');
+    
+    // Clean URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+    
+    return true;
+  } catch (err) {
+    console.error("❌ Token exchange error:", err);
+    return false;
+  }
+}
+
+// Get current user from ID token
+function getCurrentUser() {
+  const idToken = localStorage.getItem('id_token');
+  if (!idToken) return null;
+  
+  try {
+    // Decode JWT (simple base64 decode, no verification needed for client-side display)
+    const payload = JSON.parse(atob(idToken.split('.')[1]));
+    
+    // Check if token is expired
+    if (payload.exp * 1000 < Date.now()) {
+      console.log("⚠️ Token expired");
+      clearTokens();
+      return null;
+    }
+    
+    return {
+      username: payload['cognito:username'] || payload.email || 'User',
+      email: payload.email,
+      sub: payload.sub
+    };
+  } catch (err) {
+    console.error("❌ Error decoding token:", err);
+    return null;
+  }
+}
+
+// Get ID token for API calls
+function getIdToken() {
+  return localStorage.getItem('id_token');
+}
+
+// Sign out
+function signOut() {
+  clearTokens();
+  
+  // Redirect to Cognito logout
+  const logoutParams = new URLSearchParams({
+    client_id: COGNITO_CONFIG.clientId,
+    logout_uri: COGNITO_CONFIG.redirectUri
+  });
+  
+  const logoutUrl = `https://${COGNITO_CONFIG.domain}/logout?${logoutParams}`;
+  console.log("🚪 Logging out...");
+  window.location.href = logoutUrl;
+}
+
+// Clear stored tokens
+function clearTokens() {
+  localStorage.removeItem('id_token');
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+}
+
+console.log("✅ Cognito OAuth initialized");
+
+// ========== UI FUNCTIONS ==========
+
+// Get token from Auth session (for API calls)
+async function getCognitoToken() {
+  const idToken = getIdToken();
+  if (!idToken) {
     alert("Session expired. Please log in.");
     return null;
   }
+  return idToken;
 }
 
 // Show UI for authenticated user
@@ -75,27 +254,23 @@ function showLoggedOutUI() {
 
 // Check current user session
 async function checkUserSession() {
-  try {
-    const user = await getCurrentUser();
+  // First, check if this is an OAuth callback
+  const callbackHandled = await handleCallback();
+  
+  if (callbackHandled) {
+    console.log("✅ OAuth callback processed");
+  }
+  
+  // Now check if user is logged in
+  const user = getCurrentUser();
+  if (user) {
     console.log("✅ Current user:", user.username);
     showLoggedInUI(user.username);
-  } catch (err) {
-    console.log("ℹ️ No user signed in yet");
+  } else {
+    console.log("ℹ️ No user signed in");
     showLoggedOutUI();
   }
 }
-
-// Listen for Hub auth events (fires after OAuth code exchange completes)
-Hub.listen('auth', ({ payload }) => {
-  console.log("🔔 Hub auth event:", payload.event, payload.data ?? '');
-  if (payload.event === 'signedIn') {
-    getCurrentUser().then(user => showLoggedInUI(user.username)).catch(() => {});
-  } else if (payload.event === 'signedOut') {
-    showLoggedOutUI();
-  } else if (payload.event === 'signInWithRedirect_failure') {
-    console.error("❌ OAuth failure detail:", JSON.stringify(payload.data, null, 2));
-  }
-});
 
 // Get DOM elements
 const loginBtn = document.getElementById("loginBtn");
@@ -104,30 +279,21 @@ const logoutBtn = document.getElementById("logoutBtn");
 if (loginBtn) {
   loginBtn.addEventListener("click", async (e) => {
     e.preventDefault();
-    console.log("🔑 Login clicked");
-    try {
-      await signInWithRedirect();
-    } catch (err) {
-      console.error("❌ Sign in error:", err);
-    }
+    console.log("🔑 Login button clicked");
+    await signIn();
   });
 }
 
 if (logoutBtn) {
-  logoutBtn.addEventListener("click", async (e) => {
+  logoutBtn.addEventListener("click", (e) => {
     e.preventDefault();
-    console.log("🚪 Logout clicked");
-    try {
-      await signOut();
-      location.reload();
-    } catch (err) {
-      console.error("❌ Sign out error:", err);
-      location.reload();
-    }
+    console.log("🚪 Logout button clicked");
+    signOut();
   });
 }
 
-await checkUserSession(); 
+// Initialize on page load
+await checkUserSession();
 console.log("✅ CloudSnap ready");
 
 
