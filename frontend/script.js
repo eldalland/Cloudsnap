@@ -1,13 +1,25 @@
-// Load AWS Amplify from unpkg CDN
+// Load AWS Amplify from AWS official distribution
 const amplifyScript = document.createElement('script');
-amplifyScript.src = 'https://unpkg.com/aws-amplify@5.3.0/dist/aws-amplify.js';
+amplifyScript.src = 'https://aws-amplify.github.io/amplify-js/assets/amplify.min.js';
 amplifyScript.async = true;
 amplifyScript.onload = function() {
   console.log("✅ AWS Amplify loaded successfully");
   setupApp();
 };
 amplifyScript.onerror = function() {
-  console.error("❌ Failed to load AWS Amplify from CDN");
+  console.error("❌ Failed to load AWS Amplify from CDN, trying fallback...");
+  // Fallback: Load from jsDelivr
+  const fallbackScript = document.createElement('script');
+  fallbackScript.src = 'https://cdn.jsdelivr.net/npm/aws-amplify@latest/dist/aws-amplify.js';
+  fallbackScript.async = true;
+  fallbackScript.onload = function() {
+    console.log("✅ AWS Amplify loaded from fallback CDN");
+    setupApp();
+  };
+  fallbackScript.onerror = function() {
+    console.error("❌ Failed to load AWS Amplify from fallback CDN as well");
+  };
+  document.head.appendChild(fallbackScript);
 };
 document.head.appendChild(amplifyScript);
 
