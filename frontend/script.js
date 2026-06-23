@@ -37,27 +37,26 @@ async function initializeApp() {
   console.log("🚀 Initializing CloudSnap application...");
   
   // AWS Amplify from jsDelivr is exposed as 'aws_amplify'
-  const Amplify = window.aws_amplify;
+  const awsAmplify = window.aws_amplify;
   
-  if (!Amplify) {
+  if (!awsAmplify) {
     console.error("❌ aws_amplify not found in window object");
     return;
   }
   
-  console.log("✅ Amplify found:", typeof Amplify);
-  console.log("📦 Amplify methods available:", Object.keys(Amplify).slice(0, 20));
+  console.log("✅ aws_amplify found:", typeof awsAmplify);
   
-  // The configure method might be under a different location
-  const Auth = Amplify.Auth;
-  let configure = Amplify.configure || Amplify.Amplify?.configure;
+  // The actual Amplify class is inside aws_amplify
+  const Amplify = awsAmplify.Amplify;
+  const Auth = awsAmplify.Auth;
   
-  if (!configure) {
-    console.error("❌ Amplify.configure not found. Available keys:", Object.keys(Amplify));
+  if (!Amplify) {
+    console.error("❌ Amplify class not found");
     return;
   }
 
 // --- AMPLIFY CONFIGURATION ---
-configure({
+Amplify.configure({
   Auth: {
     Cognito: {
       userPoolId: 'us-east-1_BILlNM20K',
@@ -114,8 +113,19 @@ console.log("  - Logout button:", logoutBtn);
 console.log("  - loggedOutView:", loggedOutView);
 console.log("  - loggedInView:", loggedInView);
 
-// Get Auth methods
-const { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } = Auth;
+// Get Auth methods from the Auth object
+console.log("📦 Auth object available:", typeof Auth, Auth);
+const signInWithRedirect = Auth.signInWithRedirect;
+const signOut = Auth.signOut;
+const getCurrentUser = Auth.getCurrentUser;
+const fetchAuthSession = Auth.fetchAuthSession;
+
+console.log("✅ Auth methods extracted:", {
+  signInWithRedirect: typeof signInWithRedirect,
+  signOut: typeof signOut,
+  getCurrentUser: typeof getCurrentUser,
+  fetchAuthSession: typeof fetchAuthSession
+});
 
 // --- AUTHENTICATION FLOW MANAGEMENT ---
 
@@ -126,7 +136,7 @@ if (loginBtn) {
     console.log("🔐 Login button CLICKED! Initiating OAuth redirect...");
     try {
       console.log("🔄 Calling signInWithRedirect()...");
-      await signInWithRedirect();
+      await Auth.signInWithRedirect();
       console.log("✅ signInWithRedirect executed");
     } catch (err) {
       console.error("❌ Login failed:", err);
@@ -143,7 +153,7 @@ if (logoutBtn) {
     e.preventDefault();
     console.log("🚪 Logout button clicked!");
     try {
-      await signOut();
+      await Auth.signOut();
       console.log("✅ User signed out");
     } catch (err) {
       console.error("❌ Logout failed:", err);
@@ -155,7 +165,7 @@ if (logoutBtn) {
 // Evaluates the user's active session state on page load
 async function checkUserSession() {
     try {
-        const user = await getCurrentUser();
+        const user = await Auth.getCurrentUser();
         
         // User is authenticated successfully -> Show profile panel
         if (loggedOutView) loggedOutView.classList.add("hidden");
@@ -183,7 +193,7 @@ async function checkUserSession() {
 
 async function getCognitoToken() {
     try {
-        const session = await fetchAuthSession();
+        const session = await Auth.fetchAuthSession();
         const idToken = session.tokens?.idToken?.toString();
         
         if (!idToken) {
