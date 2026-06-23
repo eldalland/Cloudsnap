@@ -72,6 +72,7 @@ if (loginBtn) {
     e.preventDefault();
     console.log("🔑 Login clicked");
     try {
+      await new Promise(resolve => setTimeout(resolve, 100));  
       await signInWithRedirect();
     } catch (err) {
       console.error("❌ Sign in error:", err);
