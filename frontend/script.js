@@ -118,17 +118,20 @@ console.log("📦 Auth object:", typeof Auth);
 console.log("📦 Auth methods available:", Object.getOwnPropertyNames(Auth).slice(0, 30));
 console.log("📦 Auth prototype:", Object.getOwnPropertyNames(Object.getPrototypeOf(Auth)).slice(0, 30));
 
-// Get Auth methods from the Auth object
-const signInWithRedirect = Auth.signInWithRedirect;
-const signOut = Auth.signOut;
-const getCurrentUser = Auth.getCurrentUser;
-const fetchAuthSession = Auth.fetchAuthSession;
+// Since this is an older version of Amplify, we'll use the available methods
+// signIn will redirect to Cognito for OAuth
+const authMethods = {
+  signIn: Auth.signIn,
+  signOut: Auth.signOut,
+  getCurrentUser: Auth.getCurrentUser,
+  userPool: Auth.userPool
+};
 
-console.log("✅ Auth methods extracted:", {
-  signInWithRedirect: typeof signInWithRedirect,
-  signOut: typeof signOut,
-  getCurrentUser: typeof getCurrentUser,
-  fetchAuthSession: typeof fetchAuthSession
+console.log("✅ Auth methods available:", {
+  signIn: typeof authMethods.signIn,
+  signOut: typeof authMethods.signOut,
+  getCurrentUser: typeof authMethods.getCurrentUser,
+  userPool: typeof authMethods.userPool
 });
 
 // --- AUTHENTICATION FLOW MANAGEMENT ---
@@ -137,11 +140,22 @@ console.log("✅ Auth methods extracted:", {
 if (loginBtn) {
   loginBtn.addEventListener("click", async (e) => {
     e.preventDefault();
-    console.log("🔐 Login button CLICKED! Initiating OAuth redirect...");
+    console.log("🔐 Login button CLICKED! Initiating sign in...");
     try {
-      console.log("🔄 Calling signInWithRedirect()...");
-      await Auth.signInWithRedirect();
-      console.log("✅ signInWithRedirect executed");
+      console.log("🔄 Opening Cognito login...");
+      // Trigger the Cognito hosted UI login
+      const { userPool } = Auth;
+      if (userPool && userPool.cognitoIdentityServiceProvider) {
+        // Get the client ID from the configuration
+        const clientId = userPool.clientId || '1gvbhal6ruarketr3oc08s1vph';
+        const domain = 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com';
+        const redirectUri = window.location.origin;
+        const cognitoLoginUrl = `https://${domain}/login?client_id=${clientId}&response_type=code&scope=openid+email+profile&redirect_uri=${redirectUri}`;
+        console.log("🔗 Redirecting to:", cognitoLoginUrl);
+        window.location.href = cognitoLoginUrl;
+      } else {
+        console.error("❌ User pool not configured");
+      }
     } catch (err) {
       console.error("❌ Login failed:", err);
       alert("Login failed: " + err.message);
