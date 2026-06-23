@@ -36,9 +36,25 @@ async function setupApp() {
 async function initializeApp() {
   console.log("🚀 Initializing CloudSnap application...");
   
-  // Now Amplify is available globally
-  const { Amplify } = window;
-  const Auth = Amplify.Auth;
+  // Debug: Check what's in window
+  console.log("📦 Window object keys:", Object.keys(window).filter(k => k.includes('aws') || k.includes('amplify') || k.includes('Amplify')));
+  
+  // Try different ways to access Amplify
+  let Amplify = window.Amplify || window.aws?.Amplify;
+  
+  if (!Amplify) {
+    console.error("❌ Amplify not found in window object");
+    console.log("Available in window:", {
+      hasAmplify: 'Amplify' in window,
+      hasAws: 'aws' in window,
+      amplifyValue: window.Amplify,
+      awsValue: window.aws
+    });
+    return;
+  }
+  
+  console.log("✅ Amplify found:", typeof Amplify);
+  const Auth = Amplify.Auth || window.AmazonCognitoIdentity;
 
 // --- AMPLIFY CONFIGURATION ---
 Amplify.configure({
