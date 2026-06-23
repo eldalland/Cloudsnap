@@ -1,30 +1,42 @@
 import { Amplify, Hub } from '@aws-amplify/core';
 import { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } from '@aws-amplify/auth';
 
-// Configure Amplify FIRST
-Amplify.configure({
-  Auth: {
-    Cognito: {
-      userPoolId: 'us-east-1_BILlNM20K',
-      userPoolClientId: '1gvbhal6ruarketr3oc08s1vph',
-      loginWith: {
-        oauth: {
-          domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
-          scopes: ['openid', 'email', 'profile'],
-          redirectSignIn: [window.location.origin],
-          redirectSignOut: [window.location.origin],
-          responseType: 'code'
+// Initialize Amplify and OAuth listener
+async function initializeAuth() {
+  try {
+    // Configure Amplify FIRST
+    Amplify.configure({
+      Auth: {
+        Cognito: {
+          userPoolId: 'us-east-1_BILlNM20K',
+          userPoolClientId: '1gvbhal6ruarketr3oc08s1vph',
+          loginWith: {
+            oauth: {
+              domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
+              scopes: ['openid', 'email', 'profile'],
+              redirectSignIn: [window.location.origin],
+              redirectSignOut: [window.location.origin],
+              responseType: 'code'
+            }
+          }
         }
       }
-    }
+    });
+    console.log("✅ Amplify configured in script.js");
+
+    // NOW import the OAuth listener after config is set
+    await import('@aws-amplify/auth/enable-oauth-listener');
+    console.log("✅ OAuth listener loaded and ready");
+    
+    return true;
+  } catch (error) {
+    console.error("❌ Error initializing auth:", error);
+    return false;
   }
-});
+}
 
-console.log("✅ Amplify configured in script.js");
-
-// NOW import the OAuth listener after config is set
-await import('@aws-amplify/auth/enable-oauth-listener');
-console.log("✅ OAuth listener loaded after config");
+// Wait for auth to initialize before proceeding
+const authReady = await initializeAuth();
 // Get token from Auth session
 async function getCognitoToken() {
   try {
@@ -82,50 +94,55 @@ async function checkUserSession() {
   }
 }
 
-// Listen for Hub auth events (fires after OAuth code exchange completes)
-Hub.listen('auth', ({ payload }) => {
-  console.log("🔔 Hub auth event:", payload.event, payload.data ?? '');
-  if (payload.event === 'signedIn') {
-    getCurrentUser().then(user => showLoggedInUI(user.username)).catch(() => {});
-  } else if (payload.event === 'signedOut') {
-    showLoggedOutUI();
-  } else if (payload.event === 'signInWithRedirect_failure') {
-    console.error("❌ OAuth failure detail:", JSON.stringify(payload.data, null, 2));
+// Setup auth UI and listeners - only run after auth is initialized
+if (authReady) {
+  // Listen for Hub auth events (fires after OAuth code exchange completes)
+  Hub.listen('auth', ({ payload }) => {
+    console.log("🔔 Hub auth event:", payload.event, payload.data ?? '');
+    if (payload.event === 'signedIn') {
+      getCurrentUser().then(user => showLoggedInUI(user.username)).catch(() => {});
+    } else if (payload.event === 'signedOut') {
+      showLoggedOutUI();
+    } else if (payload.event === 'signInWithRedirect_failure') {
+      console.error("❌ OAuth failure detail:", JSON.stringify(payload.data, null, 2));
+    }
+  });
+
+  // Get DOM elements
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  if (loginBtn) {
+    loginBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      console.log("🔑 Login clicked");
+      try {
+        await signInWithRedirect();
+      } catch (err) {
+        console.error("❌ Sign in error:", err);
+      }
+    });
   }
-});
 
-    // Get DOM elements
-    const loginBtn = document.getElementById("loginBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      console.log("🚪 Logout clicked");
+      try {
+        await signOut();
+        location.reload();
+      } catch (err) {
+        console.error("❌ Sign out error:", err);
+        location.reload();
+      }
+    });
+  }
 
-if (loginBtn) {
-  loginBtn.addEventListener("click", async (e) => {
-    e.preventDefault();
-    console.log("🔑 Login clicked");
-    try {
-      await signInWithRedirect();
-    } catch (err) {
-      console.error("❌ Sign in error:", err);
-    }
-  });
+  await checkUserSession(); 
+  console.log("✅ CloudSnap ready");
+} else {
+  console.error("❌ Auth initialization failed - UI will not work");
 }
-
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", async (e) => {
-    e.preventDefault();
-    console.log("🚪 Logout clicked");
-    try {
-      await signOut();
-      location.reload();
-    } catch (err) {
-      console.error("❌ Sign out error:", err);
-      location.reload();
-    }
-  });
-}
-
-await checkUserSession(); 
-console.log("✅ CloudSnap ready");
 
 
 
