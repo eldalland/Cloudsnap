@@ -1,33 +1,8 @@
-import '@aws-amplify/auth/enable-oauth-listener';
 import { Amplify, Hub } from '@aws-amplify/core';
 import { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } from '@aws-amplify/auth';
 
-Amplify.configure({
-  Auth: {
-    Cognito: {
-      userPoolId: 'us-east-1_BILlNM20K',
-      userPoolClientId: '1gvbhal6ruarketr3oc08s1vph',
-      loginWith: {
-        oauth: {
-          domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
-          scopes: ['openid', 'email', 'profile'],
-          redirectSignIn: [window.location.origin],
-          redirectSignOut: [window.location.origin],
-          responseType: 'code'
-        }
-      }
-    }
-  }
-});
-console.log("✅ Amplify configured with origin:", window.location.origin);
-
-// Verify config is readable
-try {
-  const config = Amplify.getConfig();
-  console.log("✅ Config verified:", config.Auth?.Cognito?.userPoolId);
-} catch (err) {
-  console.error("❌ Config not readable:", err);
-}
+// Configuration is done in index.html before this script loads
+console.log("✅ Script.js loaded - config should already be set");
 // Get token from Auth session
 async function getCognitoToken() {
   try {

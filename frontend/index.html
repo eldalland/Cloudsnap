@@ -5,6 +5,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Serverless Photo Sharing and Multi-Platform Image Optimization System</title>
 
+  <!-- Load and configure Amplify BEFORE the main script -->
+  <script type="module">
+    import { Amplify } from 'https://esm.sh/@aws-amplify/core@6.16.2';
+    
+    Amplify.configure({
+      Auth: {
+        Cognito: {
+          userPoolId: 'us-east-1_BILlNM20K',
+          userPoolClientId: '1gvbhal6ruarketr3oc08s1vph',
+          loginWith: {
+            oauth: {
+              domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
+              scopes: ['openid', 'email', 'profile'],
+              redirectSignIn: [window.location.origin],
+              redirectSignOut: [window.location.origin],
+              responseType: 'code'
+            }
+          }
+        }
+      }
+    });
+    
+    console.log("✅ Amplify pre-configured in HTML");
+    
+    // Load OAuth listener after config
+    import('https://esm.sh/@aws-amplify/auth@6.20.0/enable-oauth-listener?deps=@aws-amplify/core@6.16.2').then(() => {
+      console.log("✅ OAuth listener enabled");
+    });
+  </script>
+
   <script type="importmap">
     {
       "imports": {
