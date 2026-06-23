@@ -1,6 +1,6 @@
-import '@aws-amplify/auth/enable-oauth-listener'; // Must match map key exactly
+import '@aws-amplify/auth/enable-oauth-listener';
 import { Amplify } from '@aws-amplify/core';
-import { signInWithRedirect } from '@aws-amplify/auth';
+import { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } from '@aws-amplify/auth';
 
 Amplify.configure({
   Auth: {
@@ -11,7 +11,7 @@ Amplify.configure({
         oauth: {
           domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
           scopes: ['openid', 'email', 'profile'],
-          redirectSignIn: [window.location.origin], // Uses your CloudFront URL
+          redirectSignIn: [window.location.origin],
           redirectSignOut: [window.location.origin],
           responseType: 'code'
         }
@@ -19,8 +19,6 @@ Amplify.configure({
     }
   }
 });
-
-Amplify.configure(amplifyConfig);
 console.log("✅ Amplify configured");
 // Get token from Auth session
 async function getCognitoToken() {
