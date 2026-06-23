@@ -16,33 +16,7 @@
     }
   </script>
 
-  <!-- Inline config BEFORE loading modules -->
-  <script type="module">
-    import { Amplify } from '@aws-amplify/core';
-    import '@aws-amplify/auth/enable-oauth-listener';
-    
-    Amplify.configure({
-      Auth: {
-        Cognito: {
-          userPoolId: 'us-east-1_BILlNM20K',
-          userPoolClientId: '1gvbhal6ruarketr3oc08s1vph',
-          loginWith: {
-            oauth: {
-              domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
-              scopes: ['openid', 'email', 'profile'],
-              redirectSignIn: [window.location.origin],
-              redirectSignOut: [window.location.origin],
-              responseType: 'code'
-            }
-          }
-        }
-      }
-    });
-    
-    console.log("✅ Config set and OAuth listener imported");
-  </script>
-
-  <script type="module" src="script.js" defer></script>
+  <script type="module" src="script.js"></script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
