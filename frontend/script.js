@@ -81,18 +81,6 @@ async function checkUserSession() {
   }
 }
 
-// Clear stale Amplify OAuth state from localStorage (from previous failed attempts)
-function clearAmplifyOAuthState() {
-  const clientId = '1gvbhal6ruarketr3oc08s1vph';
-  const prefix = `CognitoIdentityServiceProvider.${clientId}`;
-  // Only clear OAuth-specific keys, NOT auth tokens or config
-  sessionStorage.removeItem(`${prefix}.inflightOAuth`);
-  sessionStorage.removeItem(`${prefix}.oauthPKCE`);
-  sessionStorage.removeItem(`${prefix}.oauthState`);
-  sessionStorage.removeItem('amplify-signin-with-hostedUI');
-  console.log("🧹 Cleared stale Amplify OAuth state");
-}
-
 // Listen for Hub auth events (fires after OAuth code exchange completes)
 Hub.listen('auth', ({ payload }) => {
   console.log("🔔 Hub auth event:", payload.event, payload.data ?? '');
@@ -102,8 +90,6 @@ Hub.listen('auth', ({ payload }) => {
     showLoggedOutUI();
   } else if (payload.event === 'signInWithRedirect_failure') {
     console.error("❌ OAuth failure detail:", JSON.stringify(payload.data, null, 2));
-    // Clear stale state so the next login attempt starts fresh
-    clearAmplifyOAuthState();
   }
 });
 
@@ -116,7 +102,6 @@ if (loginBtn) {
     e.preventDefault();
     console.log("🔑 Login clicked");
     try {
-      clearAmplifyOAuthState();
       await signInWithRedirect();
     } catch (err) {
       console.error("❌ Sign in error:", err);
