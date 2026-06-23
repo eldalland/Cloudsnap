@@ -27,6 +27,7 @@ def lambda_handler(event, context):
         return create_response(500, {"error": "Server configuration error: S3 bucket environment variable missing"})
     
     # 2. Extract Username securely from Cognito Context instead of request body
+    username = None
     try:
         # HTTP API v2 uses 'jwt' instead of 'claims'
         request_context = event['requestContext']
@@ -45,6 +46,8 @@ def lambda_handler(event, context):
         
         if not username:
             return create_response(401, {"error": "Unauthorized: Unable to extract valid user context"})
+        
+        print(f"✅ Authenticated user: {username}")
     except (KeyError, TypeError) as e:
         print(f"Authorizer block exception payload: {json.dumps(event)}")
         return create_response(401, {"error": f"Unauthorized: Request missing validated Cognito token context. {str(e)}"})
