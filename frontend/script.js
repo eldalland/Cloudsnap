@@ -503,7 +503,7 @@ function displayDownloadButtons(images) {
     }
 
     imageDiv.innerHTML = `
-      <p><strong>Photo ${index + 1}</strong> (ID: ${image.photo_id.substring(0, 8)}...)</p>
+      <p><strong>Photo ${index + 1}</strong> ${displayName}</p>
       <div class="variant-buttons">
         ${Object.entries(image.variants)
           .map(([platform, url]) => `
