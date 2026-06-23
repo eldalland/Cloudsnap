@@ -144,8 +144,8 @@ async function handleCallback() {
     sessionStorage.removeItem('oauth_state');
     
     // Clean URL
-    window.history.replaceState({}, 'Cloudsnap', window.location.pathname);
-    document.title = 'Cloudsnap';
+    window.history.replaceState({}, 'CloudSnap', window.location.pathname);
+    document.title = 'CloudSnap';
     
     return true;
   } catch (err) {
