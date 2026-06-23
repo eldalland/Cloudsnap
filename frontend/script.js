@@ -9,6 +9,12 @@ import {
   fetchAuthSession 
 } from 'https://esm.sh/aws-amplify@6.20.0/auth';
 
+console.log("✅ AWS Amplify modules imported successfully");
+
+// Wait for DOM to be ready before doing anything
+document.addEventListener('DOMContentLoaded', async function() {
+  console.log("🚀 DOM Content Loaded - Starting CloudSnap application");
+
 // --- AMPLIFY CONFIGURATION ---
 Amplify.configure({
   Auth: {
@@ -40,7 +46,7 @@ Amplify.configure({
 
 console.log("✅ Amplify configured successfully");
 
-// DOM Element Selectors
+// DOM Element Selectors - NOW SAFE because DOM is loaded
 const input = document.getElementById("imageInput");
 const fileName = document.getElementById("fileName");
 const uploadBtn = document.getElementById("uploadBtn");
@@ -61,35 +67,45 @@ const loggedInUser = document.getElementById("loggedInUser");
 
 const API_GATEWAY_URL = "https://cco10loarj.execute-api.us-east-1.amazonaws.com";
 
+console.log("✅ DOM elements found:");
+console.log("  - Login button:", loginBtn);
+console.log("  - Logout button:", logoutBtn);
+console.log("  - loggedOutView:", loggedOutView);
+console.log("  - loggedInView:", loggedInView);
+
 // --- AUTHENTICATION FLOW MANAGEMENT ---
 
 // Wire up login/logout redirect interactions
-console.log("🔍 Checking login button element:", loginBtn);
-console.log("🔍 signInWithRedirect function exists:", typeof signInWithRedirect);
-
 if (loginBtn) {
-  loginBtn.addEventListener("click", async () => {
-    console.log("🔐 Login button clicked!");
+  loginBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    console.log("🔐 Login button CLICKED! Initiating OAuth redirect...");
     try {
+      console.log("🔄 Calling signInWithRedirect()...");
       await signInWithRedirect();
+      console.log("✅ signInWithRedirect executed");
     } catch (err) {
       console.error("❌ Login failed:", err);
       alert("Login failed: " + err.message);
     }
   });
+  console.log("✅ Login button event listener attached");
 } else {
   console.error("❌ Login button element not found!");
 }
 
 if (logoutBtn) {
-  logoutBtn.addEventListener("click", async () => {
+  logoutBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
     console.log("🚪 Logout button clicked!");
     try {
       await signOut();
+      console.log("✅ User signed out");
     } catch (err) {
       console.error("❌ Logout failed:", err);
     }
   });
+  console.log("✅ Logout button event listener attached");
 }
 
 // Evaluates the user's active session state on page load
@@ -319,4 +335,6 @@ async function initializeApp() {
 }
 
 // Kick off the application workflow safely
-initializeApp();
+await initializeApp();
+
+}); // Close DOMContentLoaded event listener
