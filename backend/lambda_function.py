@@ -71,13 +71,13 @@ def lambda_handler(event, context):
 
     try:
         # 5. Generate the pre-signed PUT URL
+        # NOTE: Removed Metadata because it causes signature issues when uploading from browser
         upload_url = s3_client.generate_presigned_url(
             ClientMethod='put_object',
             Params={
                 'Bucket': bucket_name,
                 'Key': object_key,
                 'ContentType': file_type,
-                'Metadata': {'user_id': username},
                 'ServerSideEncryption': 'aws:kms',
                 'SSEKMSKeyId': 'arn:aws:kms:us-east-1:337763382699:key/2a0566eb-80cb-4a5b-be8c-bdd6abfe5b03'
             },
