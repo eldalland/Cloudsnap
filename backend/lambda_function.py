@@ -28,14 +28,25 @@ def lambda_handler(event, context):
     
     # 2. Extract Username securely from Cognito Context instead of request body
     try:
-        # API Gateway extracts this directly from the validated Bearer token
-        authorizer_claims = event['requestContext']['authorizer']['claims']
-        username = authorizer_claims.get('cognito:username') or authorizer_claims.get('username')
+        # HTTP API v2 uses 'jwt' instead of 'claims'
+        request_context = event['requestContext']
+        
+        # Try HTTP API v2 format first
+        if 'authorizer' in request_context and 'jwt' in request_context['authorizer']:
+            jwt_claims = request_context['authorizer']['jwt']['claims']
+            username = jwt_claims.get('cognito:username') or jwt_claims.get('username')
+        # Fall back to REST API format
+        elif 'authorizer' in request_context and 'claims' in request_context['authorizer']:
+            authorizer_claims = request_context['authorizer']['claims']
+            username = authorizer_claims.get('cognito:username') or authorizer_claims.get('username')
+        else:
+            print(f"Authorizer structure not recognized: {json.dumps(request_context.get('authorizer', {}))}")
+            return create_response(401, {"error": "Unauthorized: Unable to parse authorizer context"})
         
         if not username:
             return create_response(401, {"error": "Unauthorized: Unable to extract valid user context"})
     except (KeyError, TypeError) as e:
-        print(f"Authorizer block exception payload: {str(event)}")
+        print(f"Authorizer block exception payload: {json.dumps(event)}")
         return create_response(401, {"error": f"Unauthorized: Request missing validated Cognito token context. {str(e)}"})
 
     # 3. Parse the filename and content type sent by the frontend

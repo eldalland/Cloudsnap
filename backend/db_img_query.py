@@ -31,13 +31,24 @@ def lambda_handler(event, context):
     try:
         # 1. EXTRACT USERNAME SECURELY FROM COGNITO CONTEXT
         try:
-            authorizer_claims = event['requestContext']['authorizer']['claims']
-            user_id = authorizer_claims.get('cognito:username') or authorizer_claims.get('username')
+            request_context = event['requestContext']
+            
+            # Try HTTP API v2 format first
+            if 'authorizer' in request_context and 'jwt' in request_context['authorizer']:
+                jwt_claims = request_context['authorizer']['jwt']['claims']
+                user_id = jwt_claims.get('cognito:username') or jwt_claims.get('username')
+            # Fall back to REST API format
+            elif 'authorizer' in request_context and 'claims' in request_context['authorizer']:
+                authorizer_claims = request_context['authorizer']['claims']
+                user_id = authorizer_claims.get('cognito:username') or authorizer_claims.get('username')
+            else:
+                print(f"Authorizer structure not recognized: {json.dumps(request_context.get('authorizer', {}))}")
+                return create_response(401, {"error": "Unauthorized: Unable to parse authorizer context"})
             
             if not user_id:
                 return create_response(401, {"error": "Unauthorized: Unable to extract valid user context"})
         except (KeyError, TypeError) as e:
-            print(f"Authorizer block exception payload: {str(event)}")
+            print(f"Authorizer block exception payload: {json.dumps(event)}")
             return create_response(401, {"error": "Unauthorized: Request missing validated Cognito token context."})
         
         print(f"Fetching metadata from DynamoDB for verified user: {user_id}")
