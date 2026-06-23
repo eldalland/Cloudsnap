@@ -1,6 +1,6 @@
+import '@aws-amplify/auth/enable-oauth-listener'; // Must match map key exactly
 import { Amplify } from '@aws-amplify/core';
-import 'aws-amplify/auth/enable-oauth-listener'; // Keep this first
-import { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession, Hub } from '@aws-amplify/auth';
+import { signInWithRedirect } from '@aws-amplify/auth';
 
 Amplify.configure({
   Auth: {
