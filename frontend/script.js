@@ -1,6 +1,8 @@
-// Import Amplify with pinned versions to ensure single instance
+// Import only core Amplify at the top
 import { Amplify, Hub } from 'https://esm.sh/@aws-amplify/core@6.16.2';
-import { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } from 'https://esm.sh/@aws-amplify/auth@6.20.0';
+
+// Auth functions will be imported after configuration
+let signInWithRedirect, signOut, getCurrentUser, fetchAuthSession;
 
 // Initialize Amplify and OAuth listener
 async function initializeAuth() {
@@ -25,7 +27,15 @@ async function initializeAuth() {
     });
     console.log("✅ Amplify configured in script.js");
 
-    // NOW import the OAuth listener after config is set
+    // NOW import auth functions after config
+    const authModule = await import('https://esm.sh/@aws-amplify/auth@6.20.0');
+    signInWithRedirect = authModule.signInWithRedirect;
+    signOut = authModule.signOut;
+    getCurrentUser = authModule.getCurrentUser;
+    fetchAuthSession = authModule.fetchAuthSession;
+    console.log("✅ Auth functions imported");
+
+    // Finally import the OAuth listener
     await import('https://esm.sh/@aws-amplify/auth@6.20.0/enable-oauth-listener');
     console.log("✅ OAuth listener loaded and ready");
     
