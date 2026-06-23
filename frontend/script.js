@@ -7,8 +7,7 @@ let Auth; // Will be set after Amplify loads
 function loadAmplifyLibrary() {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.type = 'module';
-    script.src = 'https://cdn.jsdelivr.net/npm/aws-amplify@6/dist/esm/index.min.js';
+    script.src = 'https://cdn.jsdelivr.net/npm/aws-amplify@6/dist/aws-amplify.min.js';
     script.onload = () => {
       console.log("✅ Amplify v6 library loaded");
       resolve(window.aws_amplify);
