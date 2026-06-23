@@ -1,162 +1,101 @@
-// CloudSnap - Amplify Cognito Authentication
-console.log("🚀 CloudSnap initializing...");
+// ✅ Import directly from CDN using ESM
+import { Amplify } from 'https://cdn.jsdelivr.net/npm/aws-amplify@6/+esm';
+import { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } from 'https://cdn.jsdelivr.net/npm/aws-amplify/auth/+esm';
+import { Hub } from 'https://cdn.jsdelivr.net/npm/aws-amplify/utils/+esm';
 
-let Auth; // Will be set after Amplify loads
+console.log("🚀 DOM ready - initializing CloudSnap");
 
-// Load Amplify library
-function loadAmplifyLibrary() {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/aws-amplify@6/dist/aws-amplify.min.js';
-    script.onload = () => {
-      console.log("✅ Amplify v6 library loaded");
-      resolve(window.aws_amplify);
-    };
-    script.onerror = () => {
-      console.error("❌ Failed to load Amplify");
-      reject(new Error("Failed to load Amplify"));
-    };
-    document.head.appendChild(script);
-  });
-}
+// 1. Configure Amplify
+const amplifyConfig = {
+  Auth: {
+    Cognito: {
+      region: 'us-east-1',
+      userPoolId: 'us-east-1_BILlNM20K',
+      userPoolClientId: '1gvbhal6ruarketr3oc08s1vph',
+      loginWith: {
+        oauth: {
+          domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
+          scopes: ['openid', 'email', 'profile'],
+          redirectSignIn: [window.location.origin],
+          redirectSignOut: [window.location.origin],
+          responseType: 'code'
+        }
+      }
+    }
+  }
+};
 
+Amplify.configure(amplifyConfig);
+console.log("✅ Amplify configured");
 // Get token from Auth session
 async function getCognitoToken() {
   try {
-    const { fetchAuthSession } = AmplifyLib.auth;
     const session = await fetchAuthSession();
     const idToken = session.tokens?.idToken?.toString();
-    
-    if (!idToken) {
-      throw new Error("No active credentials found in local storage.");
-    }
-    
+    if (!idToken) throw new Error("No active credentials");
     return idToken;
   } catch (err) {
     console.error("❌ Auth Error:", err);
-    alert("Session expired or unauthorized. Please log in again.");
+    alert("Session expired. Please log in.");
     return null;
   }
 }
 
 // Check current user session
-async function checkUserSession(AmplifyLib) {
+async function checkUserSession() { // ✅ No arguments needed
   try {
-    const { getCurrentUser } = AmplifyLib.auth;
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(); // ✅ Uses imported function directly
     console.log("✅ Current user:", user.username);
     
-    // Show logged in view
-    const loggedOutView = document.getElementById("loggedOutView");
-    const loggedInView = document.getElementById("loggedInView");
-    const loggedInUser = document.getElementById("loggedInUser");
-    const showUploadBtn = document.getElementById("showUploadBtn");
-    const startUploadBtn = document.getElementById("startUploadBtn");
-    
-    if (loggedOutView) loggedOutView.classList.add("hidden");
-    if (loggedInView) loggedInView.classList.remove("hidden");
-    if (loggedInUser) loggedInUser.textContent = user.username;
-    if (showUploadBtn) showUploadBtn.classList.remove("hidden");
-    if (startUploadBtn) startUploadBtn.classList.remove("hidden");
+    document.getElementById("loggedOutView")?.classList.add("hidden");
+    document.getElementById("loggedInView")?.classList.remove("hidden");
+    document.getElementById("loggedInUser").textContent = user.username;
+    document.getElementById("showUploadBtn")?.classList.remove("hidden");
+    document.getElementById("startUploadBtn")?.classList.remove("hidden");
   } catch (err) {
-    console.log("ℹ️ No user signed in:", err.name || err.message);
-    
-    // Show logged out view
-    const loggedOutView = document.getElementById("loggedOutView");
-    const loggedInView = document.getElementById("loggedInView");
-    const uploadSection = document.getElementById("upload");
-    const showUploadBtn = document.getElementById("showUploadBtn");
-    const startUploadBtn = document.getElementById("startUploadBtn");
-    
-    if (loggedOutView) loggedOutView.classList.remove("hidden");
-    if (loggedInView) loggedInView.classList.add("hidden");
-    if (uploadSection) uploadSection.classList.add("hidden");
-    if (showUploadBtn) showUploadBtn.classList.add("hidden");
-    if (startUploadBtn) startUploadBtn.classList.add("hidden");
+    console.log("ℹ️ No user signed in");
+    document.getElementById("loggedOutView")?.classList.remove("hidden");
+    document.getElementById("loggedInView")?.classList.add("hidden");
+    document.getElementById("upload")?.classList.add("hidden");
+    document.getElementById("showUploadBtn")?.classList.add("hidden");
+    document.getElementById("startUploadBtn")?.classList.add("hidden");
   }
 }
-
-// Wait for DOM and initialize
-document.addEventListener('DOMContentLoaded', async function() {
-  console.log("🚀 DOM ready - initializing CloudSnap");
-
-  try {
-    // Load Amplify
-    const amplifyModule = await loadAmplifyLibrary();
-    const { Amplify } = amplifyModule;
-
-    console.log("✅ Amplify loaded");
-
-    // Configure Amplify
-    const amplifyConfig = {
-      Auth: {
-        Cognito: {
-            region: 'us-east-1',
-            userPoolId: 'us-east-1_BILlNM20K',
-            userPoolWebClientId: '1gvbhal6ruarketr3oc08s1vph',
-            loginWith: {
-                oauth: {
-                domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
-                scopes: ['openid', 'email', 'profile'],
-                redirectSignIn: [window.location.origin],
-                redirectSignOut: [window.location.origin],
-                responseType: 'code'
-                }
-            }
-        }
-      }
-    };
-
-    Amplify.configure(amplifyConfig);
-    console.log("✅ Amplify configured successfully");
 
     // Get DOM elements
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
 
-    const { signInWithRedirect, signOut } = amplifyModule.auth;
-
-    // Setup login button
-    if (loginBtn) {
-      loginBtn.addEventListener("click", async (e) => {
-        e.preventDefault();
-        console.log("� Login clicked - redirecting to Cognito");
-        try {
-          await signInWithRedirect();
-        } catch (err) {
-          console.error("❌ Sign in error:", err);
-          alert("Login error: " + err.message);
-        }
-      });
-      console.log("✅ Login button ready");
+if (loginBtn) {
+  loginBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    console.log("🔑 Login clicked");
+    try {
+      await signInWithRedirect();
+    } catch (err) {
+      console.error("❌ Sign in error:", err);
     }
+  });
+}
 
-    // Setup logout button
-    if (logoutBtn) {
-      logoutBtn.addEventListener("click", async (e) => {
-        e.preventDefault();
-        console.log("🚪 Logout clicked");
-        try {
-          await signOut();
-          console.log("✅ User signed out");
-          location.reload();
-        } catch (err) {
-          console.error("❌ Sign out error:", err);
-          location.reload();
-        }
-      });
-      console.log("✅ Logout button ready");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    console.log("🚪 Logout clicked");
+    try {
+      await signOut();
+      location.reload();
+    } catch (err) {
+      console.error("❌ Sign out error:", err);
+      location.reload();
     }
+  });
+}
 
-    // Check session on load
-    await checkUserSession(amplifyModule);
-    console.log("✅ CloudSnap ready");
+await checkUserSession(); 
+console.log("✅ CloudSnap ready");
 
-  } catch (error) {
-    console.error("❌ Initialization error:", error);
-    alert("Error initializing CloudSnap: " + error.message);
-  }
-});
+
 
 // --- CORE APPLICATION UPLOAD & VIEW WORKFLOW ---
 
