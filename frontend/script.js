@@ -219,7 +219,7 @@ async function getCognitoToken() {
     return null;
   }
   
-  // Debug: Log token details
+  /* Debug: Log token details
   try {
     const payload = JSON.parse(atob(idToken.split('.')[1]));
     console.log("📝 Token payload:", {
@@ -232,7 +232,7 @@ async function getCognitoToken() {
   } catch (e) {
     console.error("❌ Failed to decode token:", e);
   }
-  
+  */
   return idToken;
 }
 
