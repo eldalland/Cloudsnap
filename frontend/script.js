@@ -1,14 +1,12 @@
-import 'https://cdn.jsdelivr.net/npm/aws-amplify/auth/enable-oauth-listener/+esm';
+import { Amplify } from 'aws-amplify';
+import { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
+import { Hub } from 'aws-amplify/utils';
+import 'aws-amplify/auth/enable-oauth-listener';
 
-import { Amplify } from 'https://cdn.jsdelivr.net/npm/aws-amplify@6/+esm';
-import { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } from 'https://cdn.jsdelivr.net/npm/aws-amplify/auth/+esm';
-import { Hub } from 'https://cdn.jsdelivr.net/npm/aws-amplify/utils/+esm';
+console.log("🚀 Initializing CloudSnap");
 
-
-console.log("🚀 DOM ready - initializing CloudSnap");
-
-// 1. Configure Amplify
-const amplifyConfig = {
+// Configure Amplify
+Amplify.configure({
   Auth: {
     Cognito: {
       region: 'us-east-1',
@@ -25,7 +23,7 @@ const amplifyConfig = {
       }
     }
   }
-};
+});
 
 Amplify.configure(amplifyConfig);
 console.log("✅ Amplify configured");
