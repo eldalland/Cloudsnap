@@ -261,7 +261,7 @@ function showLoggedOutUI() {
   document.getElementById("upload")?.classList.add("hidden");
   document.getElementById("loginBtnNav")?.classList.remove("hidden");  
   document.getElementById("showUploadBtn")?.classList.add("hidden");
-  document.getElementById("logutBtn")?.classList.add("hidden");
+  document.getElementById("logoutBtn")?.classList.add("hidden");
   document.getElementById("startUploadBtn")?.classList.add("hidden");
   const greeting = document.getElementById("navGreeting");
   if (greeting) {
