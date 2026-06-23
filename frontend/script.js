@@ -1,53 +1,28 @@
-// Import only core Amplify at the top
-import { Amplify, Hub } from 'https://esm.sh/@aws-amplify/core@6.16.2';
+// Use global aws_amplify from UMD bundle loaded in index.html
+const { Amplify, Hub } = window.aws_amplify;
+const { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } = window.aws_amplify;
 
-// Auth functions will be imported after configuration
-let signInWithRedirect, signOut, getCurrentUser, fetchAuthSession;
-
-// Initialize Amplify and OAuth listener
-async function initializeAuth() {
-  try {
-    // Configure Amplify FIRST
-    Amplify.configure({
-      Auth: {
-        Cognito: {
-          userPoolId: 'us-east-1_BILlNM20K',
-          userPoolClientId: '1gvbhal6ruarketr3oc08s1vph',
-          loginWith: {
-            oauth: {
-              domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
-              scopes: ['openid', 'email', 'profile'],
-              redirectSignIn: [window.location.origin],
-              redirectSignOut: [window.location.origin],
-              responseType: 'code'
-            }
-          }
+// Configure Amplify
+Amplify.configure({
+  Auth: {
+    Cognito: {
+      userPoolId: 'us-east-1_BILlNM20K',
+      userPoolClientId: '1gvbhal6ruarketr3oc08s1vph',
+      loginWith: {
+        oauth: {
+          domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
+          scopes: ['openid', 'email', 'profile'],
+          redirectSignIn: [window.location.origin],
+          redirectSignOut: [window.location.origin],
+          responseType: 'code'
         }
       }
-    });
-    console.log("✅ Amplify configured in script.js");
-
-    // NOW import auth functions after config
-    const authModule = await import('https://esm.sh/@aws-amplify/auth@6.20.0');
-    signInWithRedirect = authModule.signInWithRedirect;
-    signOut = authModule.signOut;
-    getCurrentUser = authModule.getCurrentUser;
-    fetchAuthSession = authModule.fetchAuthSession;
-    console.log("✅ Auth functions imported");
-
-    // Finally import the OAuth listener
-    await import('https://esm.sh/@aws-amplify/auth@6.20.0/enable-oauth-listener');
-    console.log("✅ OAuth listener loaded and ready");
-    
-    return true;
-  } catch (error) {
-    console.error("❌ Error initializing auth:", error);
-    return false;
+    }
   }
-}
+});
 
-// Wait for auth to initialize before proceeding
-const authReady = await initializeAuth();
+console.log("✅ Amplify configured with UMD bundle");
+
 // Get token from Auth session
 async function getCognitoToken() {
   try {
@@ -105,55 +80,50 @@ async function checkUserSession() {
   }
 }
 
-// Setup auth UI and listeners - only run after auth is initialized
-if (authReady) {
-  // Listen for Hub auth events (fires after OAuth code exchange completes)
-  Hub.listen('auth', ({ payload }) => {
-    console.log("🔔 Hub auth event:", payload.event, payload.data ?? '');
-    if (payload.event === 'signedIn') {
-      getCurrentUser().then(user => showLoggedInUI(user.username)).catch(() => {});
-    } else if (payload.event === 'signedOut') {
-      showLoggedOutUI();
-    } else if (payload.event === 'signInWithRedirect_failure') {
-      console.error("❌ OAuth failure detail:", JSON.stringify(payload.data, null, 2));
+// Listen for Hub auth events (fires after OAuth code exchange completes)
+Hub.listen('auth', ({ payload }) => {
+  console.log("🔔 Hub auth event:", payload.event, payload.data ?? '');
+  if (payload.event === 'signedIn') {
+    getCurrentUser().then(user => showLoggedInUI(user.username)).catch(() => {});
+  } else if (payload.event === 'signedOut') {
+    showLoggedOutUI();
+  } else if (payload.event === 'signInWithRedirect_failure') {
+    console.error("❌ OAuth failure detail:", JSON.stringify(payload.data, null, 2));
+  }
+});
+
+// Get DOM elements
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+
+if (loginBtn) {
+  loginBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    console.log("🔑 Login clicked");
+    try {
+      await signInWithRedirect();
+    } catch (err) {
+      console.error("❌ Sign in error:", err);
     }
   });
-
-  // Get DOM elements
-  const loginBtn = document.getElementById("loginBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
-
-  if (loginBtn) {
-    loginBtn.addEventListener("click", async (e) => {
-      e.preventDefault();
-      console.log("🔑 Login clicked");
-      try {
-        await signInWithRedirect();
-      } catch (err) {
-        console.error("❌ Sign in error:", err);
-      }
-    });
-  }
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", async (e) => {
-      e.preventDefault();
-      console.log("🚪 Logout clicked");
-      try {
-        await signOut();
-        location.reload();
-      } catch (err) {
-        console.error("❌ Sign out error:", err);
-        location.reload();
-      }
-    });
-  }
-
-  await checkUserSession(); 
-  console.log("✅ CloudSnap ready");
-} else {
-  console.error("❌ Auth initialization failed - UI will not work");
 }
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    console.log("🚪 Logout clicked");
+    try {
+      await signOut();
+      location.reload();
+    } catch (err) {
+      console.error("❌ Sign out error:", err);
+      location.reload();
+    }
+  });
+}
+
+await checkUserSession(); 
+console.log("✅ CloudSnap ready");
 
 
 
