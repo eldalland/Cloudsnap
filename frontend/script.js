@@ -242,8 +242,10 @@ function showLoggedInUI(username) {
   document.getElementById("loggedInView")?.classList.remove("hidden");
   const userEl = document.getElementById("loggedInUser");
   if (userEl) userEl.textContent = username;
+  document.getElementById("loginBtnNav")?.classList.add("hidden");  
   document.getElementById("showUploadBtn")?.classList.remove("hidden");
   document.getElementById("startUploadBtn")?.classList.remove("hidden");
+  document.getElementById("logoutBtn")?.classList.remove("hidden");
   const greeting = document.getElementById("navGreeting");
   if (greeting) {
     greeting.textContent = `Hello, ${username}`;
@@ -257,7 +259,9 @@ function showLoggedOutUI() {
   document.getElementById("loggedOutView")?.classList.remove("hidden");
   document.getElementById("loggedInView")?.classList.add("hidden");
   document.getElementById("upload")?.classList.add("hidden");
+  document.getElementById("loginBtnNav")?.classList.remove("hidden");  
   document.getElementById("showUploadBtn")?.classList.add("hidden");
+  document.getElementById("logutBtn")?.classList.add("hidden");
   document.getElementById("startUploadBtn")?.classList.add("hidden");
   const greeting = document.getElementById("navGreeting");
   if (greeting) {
