@@ -142,10 +142,10 @@ if (loginBtn) {
     e.preventDefault();
     console.log("🔐 Login button CLICKED! Initiating sign in...");
     try {
-      // Direct redirect to Cognito hosted UI
+      // Use the config values we set up
       const clientId = '1gvbhal6ruarketr3oc08s1vph';
       const domain = 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com';
-      const redirectUri = window.location.origin;
+      const redirectUri = 'http://localhost:3000'; // or use window.location.origin for current domain
       const responseType = 'code';
       const scope = 'openid email profile';
       
@@ -179,20 +179,31 @@ if (logoutBtn) {
 // Evaluates the user's active session state on page load
 async function checkUserSession() {
     try {
-        const user = await Auth.getCurrentUser();
+        console.log("🔍 Checking user session...");
+        // Try to get current user - this will fail if not authenticated
+        let user;
+        try {
+          user = await Auth.currentAuthenticatedUser();
+        } catch (e) {
+          // If currentAuthenticatedUser fails, try the alternative
+          user = await Auth.currentUser();
+        }
+        
+        console.log("✅ User authenticated:", user);
         
         // User is authenticated successfully -> Show profile panel
         if (loggedOutView) loggedOutView.classList.add("hidden");
         if (loggedInView) loggedInView.classList.remove("hidden");
-        if (loggedInUser) loggedInUser.textContent = user.username;
+        if (loggedInUser) loggedInUser.textContent = user?.username || "User";
         
         // Un-hide the action triggers so they can launch the upload panel card
         if (showUploadBtn) showUploadBtn.classList.remove("hidden");
         if (startUploadBtn) startUploadBtn.classList.remove("hidden");
         
-        console.log("Session authenticated successfully for:", user.username);
+        console.log("Session authenticated successfully for:", user?.username);
     } catch (err) {
         // User is not logged in or token expired -> Lock UI views down
+        console.log("ℹ️ No authenticated user (expected on first load):", err.message);
         if (loggedOutView) loggedOutView.classList.remove("hidden");
         if (loggedInView) loggedInView.classList.add("hidden");
         
