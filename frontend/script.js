@@ -1,7 +1,7 @@
+import '@aws-amplify/auth/enable-oauth-listener';
 import { Amplify, Hub } from '@aws-amplify/core';
 import { signInWithRedirect, signOut, getCurrentUser, fetchAuthSession } from '@aws-amplify/auth';
 
-// Configure Amplify first
 Amplify.configure({
   Auth: {
     Cognito: {
@@ -19,11 +19,15 @@ Amplify.configure({
     }
   }
 });
-console.log("✅ Amplify configured");
+console.log("✅ Amplify configured with origin:", window.location.origin);
 
-// Dynamically import the OAuth listener after config is set
-await import('@aws-amplify/auth/enable-oauth-listener');
-console.log("✅ OAuth listener enabled");
+// Verify config is readable
+try {
+  const config = Amplify.getConfig();
+  console.log("✅ Config verified:", config.Auth?.Cognito?.userPoolId);
+} catch (err) {
+  console.error("❌ Config not readable:", err);
+}
 // Get token from Auth session
 async function getCognitoToken() {
   try {
