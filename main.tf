@@ -1,3 +1,11 @@
+terraform {
+  backend "s3" {
+    bucket = "cloudsnap-terraform-state-bucket" # Must be globally unique
+    key    = "prod/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+
 # 1. Configure the Provider
 provider "aws" {
   region = "us-east-1"
