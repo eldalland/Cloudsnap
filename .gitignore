@@ -1,5 +1,6 @@
 pillow/
-deploy-V1.yml.terraform/
+deploy-V1.yml
+.terraform/
 .terraform.lock.hcl
 *.tfstate
 *.tfstate.backup
