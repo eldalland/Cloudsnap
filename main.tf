@@ -15,11 +15,7 @@ provider "aws" {
 resource "aws_dynamodb_table" "terraform_locks" {
   name           = "terraform-locks"
   billing_mode   = "PAY_PER_REQUEST"
-
-  key_schema {
-    attribute_name = "LockID"
-    key_type       = "HASH"
-  }
+  hash_key       = "LockID"
 
   attribute {
     name = "LockID"
@@ -368,11 +364,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "processed_bucket"
 resource "aws_dynamodb_table" "image_metadata" {
   name           = "cloudsnap-image-metadata"
   billing_mode   = "PAY_PER_REQUEST"
-
-  key_schema {
-    attribute_name = "photo_id"
-    key_type       = "HASH"
-  }
+  hash_key       = "photo_id"
 
   attribute {
     name = "photo_id"
@@ -398,8 +390,6 @@ resource "aws_dynamodb_table" "image_metadata" {
   point_in_time_recovery {
     enabled = true
   }
-
-  # Global Secondary Index for user_id searches
 
   tags = {
     Name = "image-metadata"
