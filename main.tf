@@ -3,6 +3,7 @@ terraform {
     bucket = "cloudsnap-terraform-state-bucket"
     key    = "prod/terraform.tfstate"
     region = "us-east-1"
+    # KMS encryption is configured via backend-config.hcl during init
   }
 }
 
@@ -24,6 +25,22 @@ resource "aws_kms_key" "terraform" {
 resource "aws_kms_alias" "terraform" {
   name          = "alias/cloudsnap-terraform"
   target_key_id = aws_kms_key.terraform.key_id
+}
+
+# DynamoDB table for Terraform state locking
+resource "aws_dynamodb_table" "terraform_locks" {
+  name           = "terraform-locks"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "LockID"
+
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+
+  tags = {
+    Name = "terraform-state-lock"
+  }
 }
 
 
@@ -91,7 +108,10 @@ resource "aws_s3_bucket_policy" "terraform_state" {
         Resource = "${aws_s3_bucket.terraform_state.arn}/*"
         Condition = {
           StringNotEquals = {
-            "s3:x-amz-server-side-encryption-aws-kms-key-id" = aws_kms_key.terraform.arn
+            "s3:x-amz-server-side-encryption-aws-kms-key-id" = [
+              aws_kms_key.terraform.arn,
+              aws_kms_key.terraform.key_id
+            ]
           }
         }
       },
@@ -608,8 +628,8 @@ resource "aws_cognito_user_pool" "cloudsnap" {
     require_uppercase = true
   }
 
-  # MFA configuration
-  mfa_configuration = "OPTIONAL"
+  # MFA configuration - set to OFF since no MFA device is configured
+  mfa_configuration = "OFF"
 
   # User attribute configuration
   schema {

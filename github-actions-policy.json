@@ -71,6 +71,7 @@
         "kms:TagResource",
         "kms:UntagResource",
         "kms:EnableKeyRotation",
+        "kms:GetKeyRotationStatus",
         "kms:Encrypt",
         "kms:Decrypt",
         "kms:GenerateDataKey"

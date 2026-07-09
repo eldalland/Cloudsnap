@@ -6,3 +6,5 @@ deploy-V1.yml
 *.tfstate.backup
 backend/placeholder.zip
 backend/index.py
+import_resources.log
+import_resources_fixed.log
