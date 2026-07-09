@@ -1,66 +1,69 @@
 terraform {
   backend "s3" {
-    bucket = "cloudsnap-terraform-state-bucket" # Must be globally unique
+    bucket = "cloudsnap-terraform-state-bucket"
     key    = "prod/terraform.tfstate"
     region = "us-east-1"
   }
 }
 
-# 1. Configure the Provider
 provider "aws" {
   region = "us-east-1"
 }
 
-# 2. Create the S3 Bucket to hold your ZIP files
-resource "aws_s3_bucket" "terraform_lambda_bucket" {
-  bucket = "cloudsnap-lambda-deployments-12345" # Must be globally unique
+# Reference existing Lambda functions (data sources, not creating new ones)
+data "aws_lambda_function" "upload_handler" {
+  function_name = "serverless-photo-app-lambda"
 }
 
-resource "aws_s3_bucket_ownership_controls" "bucket_ownership" {
-  bucket = aws_s3_bucket.terraform_lambda_bucket.id
-  rule {
-    object_ownership = "BucketOwnerPreferred"
-  }
+data "aws_lambda_function" "image_processor" {
+  function_name = "cloudsnap-image-processor-lambda"
 }
 
-# 3. Define the Shared IAM Role
-resource "aws_iam_role" "lambda_role" {
-  name = "cloudsnap_shared_lambda_role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Principal = { Service = "lambda.amazonaws.com" }
-    }]
-  })
+data "aws_lambda_function" "db_query" {
+  function_name = "sharing_photos_group6"
 }
 
-# 4. Define the three Lambda functions
-resource "aws_lambda_function" "function_one" {
-  function_name = "cloudsnap-function-one"
-  role          = aws_iam_role.lambda_role.arn
-  s3_bucket     = aws_s3_bucket.terraform_lambda_bucket.id
-  s3_key        = var.lambda_one_key
-  handler       = "image_upload.handler"
-  runtime       = "python3.12"
+# Reference existing S3 buckets
+data "aws_s3_bucket" "website_bucket" {
+  bucket = "serverless-photo-website-group6"
 }
 
-resource "aws_lambda_function" "function_two" {
-  function_name = "cloudsnap-function-two"
-  role          = aws_iam_role.lambda_role.arn
-  s3_bucket     = aws_s3_bucket.terraform_lambda_bucket.id
-  s3_key        = var.lambda_two_key
-  handler       = "image_processor.handler"
-  runtime       = "python3.12"
+data "aws_s3_bucket" "upload_bucket" {
+  bucket = "serverless-photo-upload-group6"
 }
 
-resource "aws_lambda_function" "function_three" {
-  function_name = "cloudsnap-function-three"
-  role          = aws_iam_role.lambda_role.arn
-  s3_bucket     = aws_s3_bucket.terraform_lambda_bucket.id
-  s3_key        = var.lambda_three_key
-  handler       = "db_metadata_query.handler"
-  runtime       = "python3.12"
+data "aws_s3_bucket" "processed_bucket" {
+  bucket = "serverless-photo-processed-group6"
+}
+
+# Reference existing DynamoDB table
+data "aws_dynamodb_table" "photos_table" {
+  name = "cloudsnap"
+}
+
+# Reference existing API Gateway
+data "aws_apigatewayv2_api" "api" {
+  name = "serverless-photo-api"  # Update this with your actual API name
+}
+
+# Reference existing CloudFront distribution
+data "aws_cloudfront_distribution" "cdn" {
+  id = "E1RVO4SZDJE6JU"
+}
+
+# Outputs for reference
+output "upload_handler_arn" {
+  value = data.aws_lambda_function.upload_handler.arn
+}
+
+output "image_processor_arn" {
+  value = data.aws_lambda_function.image_processor.arn
+}
+
+output "db_query_arn" {
+  value = data.aws_lambda_function.db_query.arn
+}
+
+output "cloudfront_domain" {
+  value = data.aws_cloudfront_distribution.cdn.domain_name
 }
