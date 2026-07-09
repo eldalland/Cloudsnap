@@ -29,8 +29,8 @@
         "s3:ListBucket"
       ],
       "Resource": [
-        "arn:aws:s3:::serverless-photo-website-group6",
-        "arn:aws:s3:::serverless-photo-website-group6/*"
+        "arn:aws:s3:::cloudsnap-staticsite",
+        "arn:aws:s3:::cloudsnap-staticsite/*"
       ]
     },
     {
