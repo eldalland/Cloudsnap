@@ -553,34 +553,18 @@ resource "aws_apigatewayv2_api" "cloudsnap_api" {
 
 # Integration for upload Lambda
 resource "aws_apigatewayv2_integration" "upload_integration" {
-  api_id           = aws_apigatewayv2_api.cloudsnap_api.id
-  integration_type = "AWS_PROXY"
-  integration_method = "POST"
+  api_id             = aws_apigatewayv2_api.cloudsnap_api.id
+  integration_type   = "AWS_PROXY"
+  integration_uri    = aws_lambda_function.upload_handler.invoke_arn
   payload_format_version = "2.0"
-  target           = aws_lambda_function.upload_handler.arn
 }
 
 # Integration for query Lambda
 resource "aws_apigatewayv2_integration" "query_integration" {
-  api_id           = aws_apigatewayv2_api.cloudsnap_api.id
-  integration_type = "AWS_PROXY"
-  integration_method = "POST"
+  api_id             = aws_apigatewayv2_api.cloudsnap_api.id
+  integration_type   = "AWS_PROXY"
+  integration_uri    = aws_lambda_function.db_query.invoke_arn
   payload_format_version = "2.0"
-  target           = aws_lambda_function.db_query.arn
-}
-
-# Route: POST /upload
-resource "aws_apigatewayv2_route" "upload_route" {
-  api_id       = aws_apigatewayv2_api.cloudsnap_api.id
-  route_key    = "POST /upload"
-  target       = "integrations/${aws_apigatewayv2_integration.upload_integration.id}"
-}
-
-# Route: GET /images
-resource "aws_apigatewayv2_route" "query_route" {
-  api_id       = aws_apigatewayv2_api.cloudsnap_api.id
-  route_key    = "GET /images"
-  target       = "integrations/${aws_apigatewayv2_integration.query_integration.id}"
 }
 
 # API Stage (default)
@@ -679,7 +663,6 @@ resource "aws_cognito_identity_pool" "cloudsnap" {
   cognito_identity_providers {
     client_id              = aws_cognito_user_pool_client.cloudsnap_web.id
     provider_name          = aws_cognito_user_pool.cloudsnap.endpoint
-    server_side_token_validation = false
   }
 
   tags = {
