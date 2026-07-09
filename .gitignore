@@ -4,3 +4,5 @@ deploy-V1.yml
 .terraform.lock.hcl
 *.tfstate
 *.tfstate.backup
+backend/placeholder.zip
+backend/index.py

@@ -23,30 +23,47 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Create Dummy Zip
-        run: |
-          echo "dummy" > dummy.txt
-          zip init.zip dummy.txt
-
-      - name: Initialize & Apply Infra
-        run: |
-          terraform init
-          terraform apply -auto-approve -var="lambda_one_key=init.zip" -var="lambda_two_key=init.zip" -var="lambda_three_key=init.zip"
-
-      - name: Zip and Upload Code
+      - name: Create Lambda Deployment Packages
         run: |
           cd backend
-          zip -j func1.zip ./image_upload/*
-          zip -j func2.zip ./image_processor/*
-          zip -j func3.zip ./db_metadata_query/*
-          aws s3 cp func1.zip s3://cloudsnap-lambda-deployments-12345/func1-${{ github.sha }}.zip
-          aws s3 cp func2.zip s3://cloudsnap-lambda-deployments-12345/func2-${{ github.sha }}.zip
-          aws s3 cp func3.zip s3://cloudsnap-lambda-deployments-12345/func3-${{ github.sha }}.zip
-
-      - name: Apply Lambda Updates
-        run: |
+          zip -r deployment_package.zip image_upload.py
+          zip -r deployment_package_image.zip image_processor.py
+          zip -r deployment_package_db_stream.zip db_metadata_query.py
           cd ..
-          terraform apply -auto-approve \
-          -var="lambda_one_key=func1-${{ github.sha }}.zip" \
-          -var="lambda_two_key=func2-${{ github.sha }}.zip" \
-          -var="lambda_three_key=func3-${{ github.sha }}.zip"
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply (Create Infrastructure)
+        run: terraform apply -auto-approve tfplan
+
+      - name: Deploy Frontend to S3
+        run: |
+          aws s3 sync ./frontend s3://cloudsnap-staticsite --delete
+
+      - name: Update Upload Handler Lambda
+        run: |
+          cd backend
+          aws lambda update-function-code \
+            --function-name serverless-photo-app-lambda \
+            --zip-file fileb://deployment_package.zip
+
+      - name: Update Image Processor Lambda
+        run: |
+          cd backend
+          aws lambda update-function-code \
+            --function-name cloudsnap-image-processor-lambda \
+            --zip-file fileb://deployment_package_image.zip
+
+      - name: Update DB Query Lambda
+        run: |
+          cd backend
+          aws lambda update-function-code \
+            --function-name sharing_photos_group6 \
+            --zip-file fileb://deployment_package_db_stream.zip
