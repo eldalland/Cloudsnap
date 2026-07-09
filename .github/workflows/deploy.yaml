@@ -37,6 +37,12 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
+      - name: Import Existing Resources
+        run: |
+          chmod +x import_resources.sh
+          ./import_resources.sh
+        continue-on-error: true
+
       - name: Terraform Plan
         run: terraform plan -out=tfplan
 
