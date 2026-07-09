@@ -11,27 +11,15 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# KMS key for Terraform state encryption
-resource "aws_kms_key" "terraform" {
-  description             = "KMS key for CloudSnap Terraform state encryption"
-  deletion_window_in_days = 10
-  enable_key_rotation     = true
-
-  tags = {
-    Name = "cloudsnap-terraform"
-  }
-}
-
-resource "aws_kms_alias" "terraform" {
-  name          = "alias/cloudsnap-terraform"
-  target_key_id = aws_kms_key.terraform.key_id
-}
-
 # DynamoDB table for Terraform state locking
 resource "aws_dynamodb_table" "terraform_locks" {
   name           = "terraform-locks"
   billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "LockID"
+
+  key_schema {
+    attribute_name = "LockID"
+    key_type       = "HASH"
+  }
 
   attribute {
     name = "LockID"
@@ -68,7 +56,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state" 
   rule {
     apply_server_side_encryption_by_default {
       sse_algorithm     = "aws:kms"
-      kms_master_key_id = aws_kms_key.terraform.arn
+      kms_master_key_id = data.aws_kms_key.terraform_state.arn
     }
     bucket_key_enabled = true
   }
@@ -109,8 +97,8 @@ resource "aws_s3_bucket_policy" "terraform_state" {
         Condition = {
           StringNotEquals = {
             "s3:x-amz-server-side-encryption-aws-kms-key-id" = [
-              aws_kms_key.terraform.arn,
-              aws_kms_key.terraform.key_id
+              data.aws_kms_key.terraform_state.arn,
+              data.aws_kms_key.terraform_state.key_id
             ]
           }
         }
@@ -294,7 +282,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "website_bucket" {
   rule {
     apply_server_side_encryption_by_default {
       sse_algorithm     = "aws:kms"
-      kms_master_key_id = aws_kms_key.terraform.arn
+      kms_master_key_id = data.aws_kms_key.app.arn
     }
     bucket_key_enabled = true
   }
@@ -332,7 +320,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "upload_bucket" {
   rule {
     apply_server_side_encryption_by_default {
       sse_algorithm     = "aws:kms"
-      kms_master_key_id = aws_kms_key.terraform.arn
+      kms_master_key_id = data.aws_kms_key.app.arn
     }
     bucket_key_enabled = true
   }
@@ -370,7 +358,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "processed_bucket"
   rule {
     apply_server_side_encryption_by_default {
       sse_algorithm     = "aws:kms"
-      kms_master_key_id = aws_kms_key.terraform.arn
+      kms_master_key_id = data.aws_kms_key.app.arn
     }
     bucket_key_enabled = true
   }
@@ -380,7 +368,11 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "processed_bucket"
 resource "aws_dynamodb_table" "image_metadata" {
   name           = "cloudsnap-image-metadata"
   billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "photo_id"
+
+  key_schema {
+    attribute_name = "photo_id"
+    key_type       = "HASH"
+  }
 
   attribute {
     name = "photo_id"
@@ -392,9 +384,15 @@ resource "aws_dynamodb_table" "image_metadata" {
     type = "S"
   }
 
+  global_secondary_index {
+    name            = "user_id-index"
+    hash_key        = "user_id"
+    projection_type = "ALL"
+  }
+
   server_side_encryption {
     enabled     = true
-    kms_key_arn = aws_kms_key.terraform.arn
+    kms_key_arn = data.aws_kms_key.app.arn
   }
 
   point_in_time_recovery {
@@ -402,11 +400,6 @@ resource "aws_dynamodb_table" "image_metadata" {
   }
 
   # Global Secondary Index for user_id searches
-  global_secondary_index {
-    name            = "user_id-index"
-    hash_key        = "user_id"
-    projection_type = "ALL"
-  }
 
   tags = {
     Name = "image-metadata"
