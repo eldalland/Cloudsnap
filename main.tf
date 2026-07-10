@@ -85,21 +85,6 @@ resource "aws_s3_bucket_policy" "terraform_state" {
         }
       },
       {
-        Sid    = "DenyIncorrectKmsKey"
-        Effect = "Deny"
-        Principal = "*"
-        Action = "s3:PutObject"
-        Resource = "${aws_s3_bucket.terraform_state.arn}/*"
-        Condition = {
-          StringNotEquals = {
-            "s3:x-amz-server-side-encryption-aws-kms-key-id" = [
-              data.aws_kms_key.terraform_state.arn,
-              data.aws_kms_key.terraform_state.key_id
-            ]
-          }
-        }
-      },
-      {
         Sid    = "DenyInsecureTransport"
         Effect = "Deny"
         Principal = "*"
@@ -376,12 +361,6 @@ resource "aws_dynamodb_table" "image_metadata" {
     type = "S"
   }
 
-  global_secondary_index {
-    name            = "user_id-index"
-    hash_key        = "user_id"
-    projection_type = "ALL"
-  }
-
   server_side_encryption {
     enabled     = true
     kms_key_arn = data.aws_kms_key.app.arn
@@ -389,6 +368,13 @@ resource "aws_dynamodb_table" "image_metadata" {
 
   point_in_time_recovery {
     enabled = true
+  }
+
+  # Global Secondary Index for user_id searches
+  global_secondary_index {
+    name            = "user_id-index"
+    hash_key        = "user_id"
+    projection_type = "ALL"
   }
 
   tags = {
