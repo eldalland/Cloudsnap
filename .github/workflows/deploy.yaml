@@ -109,12 +109,7 @@ jobs:
                 "Resource": [
                   "arn:aws:s3:::cloudsnap-terraform-state-bucket",
                   "arn:aws:s3:::cloudsnap-terraform-state-bucket/*"
-                ],
-                "Condition": {
-                  "StringEquals": {
-                    "s3:x-amz-server-side-encryption": "aws:kms"
-                  }
-                }
+                ]
               },
               {
                 "Sid": "DenyUnencryptedObjectUploads",
@@ -151,6 +146,8 @@ jobs:
             --bucket cloudsnap-terraform-state-bucket \
             --policy file://bucket-policy.json \
             --region us-east-1
+          
+          echo "Bucket policy applied successfully"
 
   deploy:
     needs: bootstrap
