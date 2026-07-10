@@ -70,6 +70,15 @@ resource "aws_iam_role_policy" "lambda_policy" {
           aws_dynamodb_table.image_metadata.arn,
           "${aws_dynamodb_table.image_metadata.arn}/index/*"
         ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt",
+          "kms:Encrypt",
+          "kms:GenerateDataKey"
+        ]
+        Resource = [data.aws_kms_key.app.arn]
       }
     ]
   })
