@@ -211,6 +211,8 @@ jobs:
           echo ""
           echo "S3 bucket contents:"
           aws s3 ls s3://cloudsnap-terraform-state-bucket/ --recursive
+
+      - name: Deploy Frontend to S3
         run: |
           aws s3 sync ./frontend s3://cloudsnap-staticsite --delete
 
