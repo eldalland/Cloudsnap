@@ -1,7 +1,7 @@
 // ========== COGNITO OAUTH CONFIGURATION ==========
 // ⚠️ UPDATE THESE VALUES from Terraform outputs after deployment
 const COGNITO_CONFIG = {
-  domain: 'https://cloudsnap.auth.us-east-1.amazoncognito.com', // ⚠️ UPDATE: cognito_domain output
+  domain: 'cloudsnap.auth.us-east-1.amazoncognito.com', // ⚠️ UPDATE: cognito_domain output
   clientId: '2bnit91gqd1jmc6h3irhsuntge', // ⚠️ UPDATE: user_pool_client_id output
   redirectUri: window.location.origin,
   scope: 'openid email profile',
