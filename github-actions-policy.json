@@ -181,6 +181,16 @@
         "dynamodb:DeleteItem"
       ],
       "Resource": "arn:aws:dynamodb:us-east-1:026344354643:table/terraform-locks"
+    },
+    {
+      "Sid": "TerraformStateKMSEncryption",
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt",
+        "kms:GenerateDataKey",
+        "kms:DescribeKey"
+      ],
+      "Resource": "arn:aws:kms:us-east-1:026344354643:key/*"
     }
   ]
 }
