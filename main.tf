@@ -73,6 +73,24 @@ resource "aws_s3_bucket_policy" "terraform_state" {
     Version = "2012-10-17"
     Statement = [
       {
+        Sid    = "AllowGitHubActionsStateAccess"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::026344354643:role/github-actions"
+        }
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:ListBucket",
+          "s3:GetBucketVersioning"
+        ]
+        Resource = [
+          aws_s3_bucket.terraform_state.arn,
+          "${aws_s3_bucket.terraform_state.arn}/*"
+        ]
+      },
+      {
         Sid    = "DenyUnencryptedObjectUploads"
         Effect = "Deny"
         Principal = "*"
