@@ -1,11 +1,12 @@
 // ========== COGNITO OAUTH CONFIGURATION ==========
+// ⚠️ UPDATE THESE VALUES from Terraform outputs after deployment
 const COGNITO_CONFIG = {
-  domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
-  clientId: '1gvbhal6ruarketr3oc08s1vph',
+  domain: 'https://cloudsnap.auth.us-east-1.amazoncognito.com', // ⚠️ UPDATE: cognito_domain output
+  clientId: '2bnit91gqd1jmc6h3irhsuntge', // ⚠️ UPDATE: user_pool_client_id output
   redirectUri: window.location.origin,
   scope: 'openid email profile',
   region: 'us-east-1',
-  userPoolId: 'us-east-1_BILlNM20K'
+  userPoolId: 'us-east-1_qv4iOnxEc' // ⚠️ UPDATE: user_pool_id output
 };
 
 // ========== OAUTH HELPER FUNCTIONS ==========
@@ -329,6 +330,7 @@ console.log("✅ CloudSnap ready");
 
 // --- CORE APPLICATION UPLOAD & VIEW WORKFLOW ---
 
+// ⚠️ UPDATE: api_endpoint output from Terraform
 const API_GATEWAY_URL = "https://cco10loarj.execute-api.us-east-1.amazonaws.com";
 
 // Get DOM elements after page loads
