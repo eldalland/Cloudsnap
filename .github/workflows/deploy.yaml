@@ -175,6 +175,21 @@ jobs:
       - name: Terraform Init
         run: terraform init -backend-config=backend-config.hcl
 
+      - name: Verify Backend Configuration
+        run: |
+          echo "Checking backend initialization..."
+          echo ""
+          echo "Backend config file contents:"
+          cat backend-config.hcl
+          
+          echo ""
+          echo "Terraform backend status:"
+          terraform backend show 2>&1 || echo "Backend not yet initialized with state"
+          
+          echo ""
+          echo "Checking if S3 state file exists:"
+          aws s3 ls s3://cloudsnap-terraform-state-bucket/prod/ || echo "No state file yet"
+
       - name: Terraform Validate
         run: terraform validate
 
@@ -184,7 +199,18 @@ jobs:
       - name: Terraform Apply (Create Infrastructure)
         run: terraform apply -auto-approve tfplan
 
-      - name: Deploy Frontend to S3
+      - name: Verify Terraform State
+        run: |
+          echo "Checking if state was saved to S3..."
+          aws s3 ls s3://cloudsnap-terraform-state-bucket/prod/terraform.tfstate
+          
+          echo ""
+          echo "Terraform state list:"
+          terraform state list
+          
+          echo ""
+          echo "S3 bucket contents:"
+          aws s3 ls s3://cloudsnap-terraform-state-bucket/ --recursive
         run: |
           aws s3 sync ./frontend s3://cloudsnap-staticsite --delete
 
