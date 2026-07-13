@@ -548,8 +548,8 @@ resource "aws_cognito_user_pool_client" "cloudsnap_web" {
   allowed_oauth_scopes                 = ["email", "openid", "profile"]
   allowed_oauth_flows_user_pool_client = true
 
-  callback_urls = ["https://${dq6v2g6tyalrb.cloudfront.net}/"]
-  logout_urls   = ["https://${dq6v2g6tyalrb.cloudfront.net}/"]
+  callback_urls = ["https://${aws_cloudfront_distribution.static_site.domain_name}/"]
+  logout_urls   = ["https://${aws_cloudfront_distribution.static_site.domain_name}/"]
 
   supported_identity_providers = ["COGNITO"]
 
