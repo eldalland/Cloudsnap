@@ -20,6 +20,22 @@ resource "aws_apigatewayv2_api" "cloudsnap_api" {
   }
 }
 
+# Integration for upload Lambda
+resource "aws_apigatewayv2_integration" "upload_integration" {
+  api_id                 = aws_apigatewayv2_api.cloudsnap_api.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.upload_handler.invoke_arn
+  payload_format_version = "2.0"
+}
+
+# Integration for query Lambda
+resource "aws_apigatewayv2_integration" "query_integration" {
+  api_id                 = aws_apigatewayv2_api.cloudsnap_api.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.db_query.invoke_arn
+  payload_format_version = "2.0"
+}
+
 # --- COGNITO RESOURCES ---
 
 # Cognito User Pool
