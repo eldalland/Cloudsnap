@@ -535,21 +535,32 @@ resource "aws_cognito_user_pool" "cloudsnap" {
   }
 }
 
-# Cognito User Pool Client (for web application)
 resource "aws_cognito_user_pool_client" "cloudsnap_web" {
   name                = "cloudsnap-web-client"
   user_pool_id        = aws_cognito_user_pool.cloudsnap.id
   generate_secret     = false
   explicit_auth_flows = ["ALLOW_USER_PASSWORD_AUTH", "ALLOW_REFRESH_TOKEN_AUTH"]
 
-  allowed_oauth_flows            = ["code", "implicit"]
-  allowed_oauth_scopes           = ["email", "openid", "profile"]
+  allowed_oauth_flows                  = ["code", "implicit"]
+  allowed_oauth_scopes                 = ["email", "openid", "profile"]
   allowed_oauth_flows_user_pool_client = true
-  
+
   callback_urls = ["http://localhost:3000", "https://yourdomain.com"]
   logout_urls   = ["http://localhost:3000", "https://yourdomain.com"]
 
   supported_identity_providers = ["COGNITO"]
+
+  # Added these mandatory units to resolve the 400 error
+  # while keeping your original resource identifier names.
+  access_token_validity  = 60
+  id_token_validity      = 60
+  refresh_token_validity = 30
+
+  token_validity_units {
+    access_token  = "minutes"
+    id_token      = "minutes"
+    refresh_token = "days"
+  }
 }
 
 # Cognito Identity Pool
