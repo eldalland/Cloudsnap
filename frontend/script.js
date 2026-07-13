@@ -1,7 +1,7 @@
 // ========== COGNITO OAUTH CONFIGURATION ==========
 // ⚠️ UPDATE THESE VALUES from Terraform outputs after deployment
 const COGNITO_CONFIG = {
-  domain: 'cloudsnap.auth.us-east-1.amazoncognito.com', // ⚠️ UPDATE: cognito_domain output
+  domain: 'https://cloudsnap.auth.us-east-1.amazoncognito.com', // ⚠️ UPDATE: cognito_domain output
   clientId: '2bnit91gqd1jmc6h3irhsuntge', // ⚠️ UPDATE: user_pool_client_id output
   redirectUri: window.location.origin,
   scope: 'openid email profile',
@@ -71,10 +71,9 @@ async function signIn() {
       code_challenge: challenge,
       code_challenge_method: 'S256'
     });
-    const authUrl = `https://${COGNITO_CONFIG.domain}/oauth2/authorize?${params}`;
+    
+    const authUrl = `${COGNITO_CONFIG.domain}/oauth2/authorize?${params}`;
     console.log("🔑 Redirecting to Cognito login...");
-    console.log("DEBUG: Final authUrl being sent:", authUrl);
-    console.log("DEBUG: COGNITO_CONFIG.domain value:", COGNITO_CONFIG.domain);
     window.location.href = authUrl;
   } catch (err) {
     console.error("❌ Login error:", err);
