@@ -1,3 +1,27 @@
+terraform {
+  backend "s3" {
+    bucket = "cloudsnap-terraform-state-bucket"
+    key    = "prod/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+# --- API GATEWAY RESOURCE ---
+resource "aws_apigatewayv2_api" "cloudsnap_api" {
+  name          = "cloudsnap-api"
+  protocol_type = "HTTP"
+  
+  tags = {
+    Name = "cloudsnap-api"
+  }
+}
+
+# --- COGNITO RESOURCES ---
+
 # Cognito User Pool
 resource "aws_cognito_user_pool" "cloudsnap" {
   name = "cloudsnap-user-pool"
@@ -131,8 +155,3 @@ resource "aws_apigatewayv2_route" "query_route" {
   authorization_type = "JWT"
   authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
-
-# Outputs
-output "user_pool_id" { value = aws_cognito_user_pool.cloudsnap.id }
-output "user_pool_client_id" { value = aws_cognito_user_pool_client.cloudsnap_web.id }
-output "identity_pool_id" { value = aws_cognito_identity_pool.cloudsnap.id }
