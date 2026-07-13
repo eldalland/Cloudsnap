@@ -533,6 +533,9 @@ resource "aws_cognito_user_pool" "cloudsnap" {
   tags = {
     Name = "cloudsnap-user-pool"
   }
+  lifecycle {
+    ignore_changes = [schema]
+  }
 }
 
 resource "aws_cognito_user_pool_client" "cloudsnap_web" {
