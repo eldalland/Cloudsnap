@@ -116,7 +116,7 @@ async function handleCallback() {
   });
   
   try {
-    const response = await fetch(`https://${COGNITO_CONFIG.domain}/oauth2/token`, {
+    const response = await fetch(`${COGNITO_CONFIG.domain}/oauth2/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
