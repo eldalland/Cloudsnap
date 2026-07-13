@@ -71,7 +71,9 @@ async function signIn() {
       code_challenge: challenge,
       code_challenge_method: 'S256'
     });
-    
+    console.log("DEBUG: Final authUrl being sent:", authUrl);
+    console.log("DEBUG: COGNITO_CONFIG.domain value:", COGNITO_CONFIG.domain);
+    window.location.href = authUrl;
     const authUrl = `https://${COGNITO_CONFIG.domain}/oauth2/authorize?${params}`;
     console.log("🔑 Redirecting to Cognito login...");
     window.location.href = authUrl;
