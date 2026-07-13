@@ -2,11 +2,11 @@
 // ⚠️ UPDATE THESE VALUES from Terraform outputs after deployment
 const COGNITO_CONFIG = {
   domain: 'https://cloudsnap.auth.us-east-1.amazoncognito.com', // ⚠️ UPDATE: cognito_domain output
-  clientId: '2bnit91gqd1jmc6h3irhsuntge', // ⚠️ UPDATE: user_pool_client_id output
+  clientId: '4bla9imus37cdtg5tq0u2nfpef', // ⚠️ UPDATE: user_pool_client_id output
   redirectUri: window.location.origin,
   scope: 'openid email profile',
   region: 'us-east-1',
-  userPoolId: 'us-east-1_qv4iOnxEc' // ⚠️ UPDATE: user_pool_id output
+  userPoolId: 'us-east-1_59TQcgjji' // ⚠️ UPDATE: user_pool_id output
 };
 
 // ========== OAUTH HELPER FUNCTIONS ==========
