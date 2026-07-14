@@ -480,7 +480,7 @@ resource "aws_apigatewayv2_route" "presigned_url_route" {
 resource "aws_lambda_permission" "presigned_url_permission" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.YOUR_LAMBDA_NAME.function_name
+  function_name = aws_lambda_function.serverless-photo-app-lambda.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.cloudsnap_api.execution_arn}/*/*"
 }
