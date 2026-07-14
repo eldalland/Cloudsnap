@@ -80,7 +80,7 @@ resource "aws_lambda_function" "upload_handler" {
   filename         = "backend/placeholder.zip"
   function_name    = "serverless-photo-app-lambda"
   role             = aws_iam_role.lambda_execution_role.arn
-  handler          = "index.handler"
+  handler          = "image_upload.serverless-photo-app.lambda"
   runtime          = "python3.11"
   timeout          = 60
   memory_size      = 256
@@ -101,8 +101,9 @@ resource "aws_lambda_function" "image_processor" {
   filename         = "backend/placeholder.zip"
   function_name    = "cloudsnap-image-processor-lambda"
   role             = aws_iam_role.lambda_execution_role.arn
-  handler          = "index.handler"
+  handler          = "Image_processor.cloudsnap-image-processor-lambda"
   runtime          = "python3.11"
+  layers           = ["arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p311-Pillow:5"]
   timeout          = 120
   memory_size      = 512
 
@@ -123,7 +124,7 @@ resource "aws_lambda_function" "db_query" {
   filename         = "backend/placeholder.zip"
   function_name    = "sharing_photos_group6"
   role             = aws_iam_role.lambda_execution_role.arn
-  handler          = "index.handler"
+  handler          = "db_metadata_query.sharing_photos_group6"
   runtime          = "python3.11"
   timeout          = 30
   memory_size      = 256
@@ -462,6 +463,26 @@ resource "aws_apigatewayv2_integration" "query_integration" {
   integration_type   = "AWS_PROXY"
   integration_uri    = aws_lambda_function.db_query.invoke_arn
   payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_integration" "presigned_url_integration" {
+  api_id             = aws_apigatewayv2_api.cloudsnap_api.id
+  integration_type   = "AWS_PROXY"
+  integration_uri    = aws_lambda_function.YOUR_LAMBDA_NAME.invoke_arn # Replace with your function's name
+  payload_format_version = "2.0"
+}
+resource "aws_apigatewayv2_route" "presigned_url_route" {
+  api_id    = aws_apigatewayv2_api.cloudsnap_api.id
+  route_key = "GET /get-presigned-url" # This defines the path and method
+  target    = "integrations/${aws_apigatewayv2_integration.presigned_url_integration.id}"
+}
+
+resource "aws_lambda_permission" "presigned_url_permission" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.YOUR_LAMBDA_NAME.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.cloudsnap_api.execution_arn}/*/*"
 }
 
 # API Stage (default)
