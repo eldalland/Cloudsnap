@@ -447,6 +447,12 @@ resource "aws_apigatewayv2_api" "cloudsnap_api" {
   tags = {
     Name = "cloudsnap-api"
   }
+
+  cors_configuration {
+    allow_origins = ["*"] # Or your specific domain
+    allow_methods = ["GET", "OPTIONS", "POST"]
+    allow_headers = ["content-type", "authorization"]
+  }
 }
 
 # Integration for upload Lambda
