@@ -103,7 +103,7 @@ resource "aws_lambda_function" "image_processor" {
   role             = aws_iam_role.lambda_execution_role.arn
   handler          = "Image_processor.cloudsnap-image-processor-lambda"
   runtime          = "python3.11"
-  layers           = ["arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p311-Pillow:5"]
+  layers           = ["arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p310-Pillow:14"]
   timeout          = 120
   memory_size      = 512
 
