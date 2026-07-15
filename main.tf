@@ -498,7 +498,7 @@ resource "aws_apigatewayv2_stage" "default" {
 
 # Lambda permissions for API Gateway
 resource "aws_lambda_permission" "upload_api_permission" {
-  statement_id  = "AllowAPIGatewayInvoke"
+  statement_id  = "AllowAPIGatewayInvokeUploadLambda"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.upload_handler.function_name
   principal     = "apigateway.amazonaws.com"
@@ -506,7 +506,7 @@ resource "aws_lambda_permission" "upload_api_permission" {
 }
 
 resource "aws_lambda_permission" "query_api_permission" {
-  statement_id  = "AllowAPIGatewayInvoke"
+  statement_id  = "AllowAPIGatewayInvokeQueryLambda"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.db_query.function_name
   principal     = "apigateway.amazonaws.com"
