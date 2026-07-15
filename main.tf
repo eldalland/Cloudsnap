@@ -479,7 +479,7 @@ resource "aws_apigatewayv2_integration" "presigned_url_integration" {
 }
 resource "aws_apigatewayv2_route" "presigned_url_route" {
   api_id    = aws_apigatewayv2_api.cloudsnap_api.id
-  route_key = "GET /get-presigned-url" # This defines the path and method
+  route_key = "POST /get-presigned-url" # This defines the path and method
   target    = "integrations/${aws_apigatewayv2_integration.presigned_url_integration.id}"
 }
 
