@@ -1,6 +1,6 @@
 // ========== COGNITO OAUTH CONFIGURATION ==========
 const COGNITO_CONFIG = {
-  domain: 'https://cloudsnap.auth.us-east-1.amazoncognito.com',
+  domain: 'cloudsnap.auth.us-east-1.amazoncognito.com',
   clientId: '1gvbhal6ruarketr3oc08s1vph',
   redirectUri: window.location.origin,
   scope: 'openid email profile',
@@ -71,7 +71,7 @@ async function signIn() {
       code_challenge_method: 'S256'
     });
     
-    const authUrl = `${COGNITO_CONFIG.domain}/oauth2/authorize?${params}`;
+    const authUrl = `https://${COGNITO_CONFIG.domain}/oauth2/authorize?${params}`; //I removed https from here
     console.log("🔑 Redirecting to Cognito login...");
     window.location.href = authUrl;
   } catch (err) {
