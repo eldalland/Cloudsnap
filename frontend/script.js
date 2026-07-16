@@ -435,7 +435,7 @@ async function uploadImage(file) {
       headers: {
         'Content-Type' : file.type,
         'x-amz-server-side-encryption': 'aws:kms',
-        'x-amz-server-side-encryption-aws-kms-key-id': 'arn:aws:kms:us-east-1:337763382699:key/2a0566eb-80cb-4a5b-be8c-bdd6abfe5b03'
+        'x-amz-server-side-encryption-aws-kms-key-id': 'arn:aws:kms:us-east-1:026344354643:key/2f2e51c1-2235-45e3-82f2-ee0e4d0c6985'
       },
       body: file 
     });
