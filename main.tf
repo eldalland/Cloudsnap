@@ -11,8 +11,6 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# ========== TERRAFORM SETUP RESOURCES ==========
-
 # DynamoDB table for Terraform state locking
 resource "aws_dynamodb_table" "terraform_locks" {
   name           = "terraform-locks"
@@ -28,6 +26,8 @@ resource "aws_dynamodb_table" "terraform_locks" {
     Name = "terraform-state-lock"
   }
 }
+
+
 
 # Manage the Terraform state bucket
 resource "aws_s3_bucket" "terraform_state" {
@@ -94,8 +94,6 @@ resource "aws_s3_bucket_policy" "terraform_state" {
     ]
   })
 }
-
-# ========== LAMBDA FUNCTIONS & EXECUTION ROLE ==========
 
 # Lambda execution role
 resource "aws_iam_role" "lambda_execution_role" {
@@ -225,62 +223,6 @@ resource "aws_lambda_function" "db_query" {
   }
 }
 
-# Lambda permissions for API Gateway
-resource "aws_lambda_permission" "upload_api_permission" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.upload_handler.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.cloudsnap_api.execution_arn}/*/*"
-}
-
-resource "aws_lambda_permission" "query_api_permission" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.db_query.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.cloudsnap_api.execution_arn}/*/*"
-}
-
-# ========== DATA STORAGE - S3 BUCKETS & DYNAMODB ==========
-
-# DynamoDB table for image metadata
-resource "aws_dynamodb_table" "image_metadata" {
-  name           = "cloudsnap-image-metadata"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "photo_id"
-
-  attribute {
-    name = "photo_id"
-    type = "S"
-  }
-
-  attribute {
-    name = "user_id"
-    type = "S"
-  }
-
-  server_side_encryption {
-    enabled     = true
-    kms_key_arn = data.aws_kms_key.app.arn
-  }
-
-  point_in_time_recovery {
-    enabled = true
-  }
-
-  # Global Secondary Index for user_id searches
-  global_secondary_index {
-    name            = "user_id-index"
-    hash_key        = "user_id"
-    projection_type = "ALL"
-  }
-
-  tags = {
-    Name = "image-metadata"
-  }
-}
-
 # Static site bucket (for frontend)
 resource "aws_s3_bucket" "website_bucket" {
   bucket = "cloudsnap-staticsite"
@@ -395,6 +337,43 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "processed_bucket"
   }
 }
 
+# DynamoDB table for image metadata
+resource "aws_dynamodb_table" "image_metadata" {
+  name           = "cloudsnap-image-metadata"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "photo_id"
+
+  attribute {
+    name = "photo_id"
+    type = "S"
+  }
+
+  attribute {
+    name = "user_id"
+    type = "S"
+  }
+
+  server_side_encryption {
+    enabled     = true
+    kms_key_arn = data.aws_kms_key.app.arn
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  # Global Secondary Index for user_id searches
+  global_secondary_index {
+    name            = "user_id-index"
+    hash_key        = "user_id"
+    projection_type = "ALL"
+  }
+
+  tags = {
+    Name = "image-metadata"
+  }
+}
+
 # CloudFront origin access control for S3
 resource "aws_cloudfront_origin_access_control" "s3_oac" {
   name                              = "cloudsnap-s3-oac"
@@ -403,8 +382,6 @@ resource "aws_cloudfront_origin_access_control" "s3_oac" {
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
 }
-
-# ========== CONTENT DELIVERY - CLOUDFRONT & CDN ==========
 
 # CloudFront distribution for static website
 resource "aws_cloudfront_distribution" "static_site" {
@@ -555,8 +532,6 @@ resource "aws_apigatewayv2_api" "cloudsnap_api" {
   }
 }
 
-# ========== API GATEWAY & INTEGRATION ==========
-
 # Integration for upload Lambda
 resource "aws_apigatewayv2_integration" "upload_integration" {
   api_id             = aws_apigatewayv2_api.cloudsnap_api.id
@@ -633,7 +608,22 @@ resource "aws_api_gateway_account" "api_account" {
   cloudwatch_role_arn = aws_iam_role.apigateway_cloudwatch_role.arn
 }
 
-# ========== AUTHENTICATION - COGNITO ==========
+# Lambda permissions for API Gateway
+resource "aws_lambda_permission" "upload_api_permission" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.upload_handler.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.cloudsnap_api.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "query_api_permission" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.db_query.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.cloudsnap_api.execution_arn}/*/*"
+}
 
 # Cognito User Pool
 resource "aws_cognito_user_pool" "cloudsnap" {
@@ -775,6 +765,16 @@ resource "aws_apigatewayv2_authorizer" "cognito" {
     audience       = [aws_cognito_user_pool_client.cloudsnap_web.id]
     issuer         = "https://cognito-idp.us-east-1.amazonaws.com/${aws_cognito_user_pool.cloudsnap.id}"
   }
+}
+
+resource "aws_apigatewayv2_route" "get_presigned_url_route" {
+  api_id    = aws_apigatewayv2_api.cloudsnap_api.id
+  route_key = "POST /get-presigned-url"
+  target    = "integrations/${aws_apigatewayv2_lambda_integration.my_lambda_integration.id}"
+  
+  # Ensure the authorizer is attached here
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 # Update the upload route to use the authorizer
