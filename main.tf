@@ -225,7 +225,7 @@ resource "aws_s3_bucket_cors_configuration" "upload_bucket_cors" {
       "x-amz-server-side-encryption",
       "x-amz-server-side-encryption-aws-kms-key-id"
     ]
-    allowed_methods = ["GET", "PUT", "OPTIONS"]
+    allowed_methods = ["GET", "PUT", "POST"]
     allowed_origins = ["https://dq6v2g6tyalrb.cloudfront.net/"] # Restrict this to your frontend domain in production
     max_age_seconds = 3000
   }
