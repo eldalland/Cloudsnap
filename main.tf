@@ -216,6 +216,21 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "upload_bucket" {
   }
 }
 
+resource "aws_s3_bucket_cors_configuration" "upload_bucket_cors" {
+  bucket = aws_s3_bucket.upload_bucket.id
+
+  cors_rule {
+    allowed_headers = [
+      "Content-Type",
+      "x-amz-server-side-encryption",
+      "x-amz-server-side-encryption-aws-kms-key-id"
+    ]
+    allowed_methods = ["GET", "PUT", "OPTIONS"]
+    allowed_origins = ["https://dq6v2g6tyalrb.cloudfront.net/"] # Restrict this to your frontend domain in production
+    max_age_seconds = 3000
+  }
+}
+
 # Processed/resized bucket (for processed images)
 resource "aws_s3_bucket" "processed_bucket" {
   bucket = "cloudsnap-resized"
@@ -449,7 +464,7 @@ resource "aws_apigatewayv2_api" "cloudsnap_api" {
   }
 
   cors_configuration {
-    allow_origins = ["*"] # Or your specific domain
+    allow_origins = ["https://dq6v2g6tyalrb.cloudfront.net/"] # Or your specific domain
     allow_methods = ["GET", "OPTIONS", "POST"]
     allow_headers = ["content-type", "authorization"]
   }
