@@ -1,9 +1,11 @@
 terraform {
   backend "s3" {
-    bucket = "cloudsnap-terraform-state-bucket"
-    key    = "prod/terraform.tfstate"
-    region = "us-east-1"
-    # KMS encryption is configured via backend-config.hcl during init
+    bucket     = "cloudsnap-terraform-state-bucket"
+    key        = "prod/terraform.tfstate"
+    region     = "us-east-1"
+    encrypt    = true
+    # Use the full ARN here
+    kms_key_id = "arn:aws:kms:us-east-1:026344354643:key/2f2e51c1-2235-45e3-82f2-ee0e4d0c6985"
   }
 }
 
