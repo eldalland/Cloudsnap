@@ -767,6 +767,16 @@ resource "aws_apigatewayv2_authorizer" "cognito" {
   }
 }
 
+resource "aws_apigatewayv2_route" "get_presigned_url_route" {
+  api_id    = aws_apigatewayv2_api.cloudsnap_api.id
+  route_key = "POST /get-presigned-url"
+  target    = "integrations/${aws_apigatewayv2_lambda_integration.my_lambda_integration.id}"
+  
+  # Ensure the authorizer is attached here
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
+}
+
 # Update the upload route to use the authorizer
 resource "aws_apigatewayv2_route" "upload_route" {
   api_id       = aws_apigatewayv2_api.cloudsnap_api.id
