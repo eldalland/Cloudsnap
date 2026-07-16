@@ -71,7 +71,7 @@ async function signIn() {
       code_challenge_method: 'S256'
     });
     
-    const authUrl = `https://${COGNITO_CONFIG.domain}/oauth2/authorize?${params}`;
+    const authUrl = `${COGNITO_CONFIG.domain}/oauth2/authorize?${params}`;
     console.log("🔑 Redirecting to Cognito login...");
     window.location.href = authUrl;
   } catch (err) {
