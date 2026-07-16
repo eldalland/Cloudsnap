@@ -79,7 +79,7 @@ def lambda_handler(event, context):
                 'Key': object_key,
                 'ContentType': file_type,
                 'ServerSideEncryption': 'aws:kms',
-                'SSEKMSKeyId': 'arn:aws:kms:us-east-1:337763382699:key/2a0566eb-80cb-4a5b-be8c-bdd6abfe5b03'
+                'SSEKMSKeyId': 'arn:aws:kms:us-east-1:026344354643:key/2f2e51c1-2235-45e3-82f2-ee0e4d0c6985'
             },
             ExpiresIn=300
         )
