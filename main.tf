@@ -657,6 +657,11 @@ resource "aws_cognito_user_pool" "cloudsnap" {
   }
 }
 
+resource "aws_cognito_user_pool_domain" "main" {
+  domain       = "cloudsnap"
+  user_pool_id = aws_cognito_user_pool.cloudsnap.id
+}
+
 # Cognito User Pool Client (for web application)
 resource "aws_cognito_user_pool_client" "cloudsnap_web" {
   name                = "cloudsnap-web-client"
