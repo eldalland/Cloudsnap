@@ -569,6 +569,45 @@ resource "aws_apigatewayv2_stage" "default" {
   }
 }
 
+#IAM Role that allows API Gateway to write to CloudWatch
+resource "aws_iam_role" "apigateway_cloudwatch_role" {
+  name = "api_gateway_cloudwatch_global"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = { Service = "apigateway.amazonaws.com" }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "apigateway_cloudwatch_policy" {
+  role = aws_iam_role.apigateway_cloudwatch_role.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:DescribeLogGroups",
+        "logs:DescribeLogStreams",
+        "logs:PutLogEvents",
+        "logs:GetLogEvents",
+        "logs:FilterLogEvents"
+      ],
+      Resource = "*"
+    }]
+  })
+}
+
+#Tell AWS to use this role for ALL API Gateway logging in your account
+resource "aws_api_gateway_account" "api_account" {
+  cloudwatch_role_arn = aws_iam_role.apigateway_cloudwatch_role.arn
+}
+
 # Lambda permissions for API Gateway
 resource "aws_lambda_permission" "upload_api_permission" {
   statement_id  = "AllowAPIGatewayInvoke"
