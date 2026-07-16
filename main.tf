@@ -464,9 +464,10 @@ resource "aws_apigatewayv2_api" "cloudsnap_api" {
   }
 
   cors_configuration {
-    allow_origins = ["https://dq6v2g6tyalrb.cloudfront.net/"] # Or your specific domain
-    allow_methods = ["GET", "OPTIONS", "POST"]
-    allow_headers = ["content-type", "authorization"]
+    allow_headers = ["content-type", "authorization", "x-amz-date", "x-api-key", "x-amz-security-token"]
+    allow_methods = ["POST", "OPTIONS"]
+    allow_origins = ["https://dq6v2g6tyalrb.cloudfront.net/"] 
+    max_age       = 3000
   }
 }
 
