@@ -565,9 +565,9 @@ resource "aws_apigatewayv2_stage" "default" {
     Name = "default"
   }
 
-  access_log_settings {
+access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_logs.arn
-    format          = "$context.identity.sourceIp - - [$context.requestTime] \"$context.httpMethod $context.routeKey $context.protocol\" $context.status $context.responseLength $context.authorizer.error"
+    format          = "$context.identity.sourceIp - $context.requestId [$context.requestTime] \"$context.httpMethod $context.routeKey $context.protocol\" $context.status $context.responseLength $context.authorizer.error"
   }
 }
 
@@ -643,21 +643,8 @@ resource "aws_cognito_user_pool" "cloudsnap" {
   # MFA configuration - set to OFF since no MFA device is configured
   mfa_configuration = "OFF"
 
-  # User attribute configuration
-  schema {
-    name              = "email"
-    attribute_data_type = "String"
-    required          = true
-    mutable           = true
-  }
-
-  schema {
-    name              = "name"
-    attribute_data_type = "String"
-    mutable           = true
-  }
-
   # Auto-verified attributes
+  username_attributes      = ["email"]
   auto_verified_attributes = ["email"]
 
   # Email configuration
