@@ -1,12 +1,11 @@
 // ========== COGNITO OAUTH CONFIGURATION ==========
-// ⚠️ UPDATE THESE VALUES from Terraform outputs after deployment
 const COGNITO_CONFIG = {
-  domain: 'https://cloudsnap.auth.us-east-1.amazoncognito.com', // ⚠️ UPDATE: cognito_domain output
-  clientId: '4bla9imus37cdtg5tq0u2nfpef', // ⚠️ UPDATE: user_pool_client_id output
+  domain: 'us-east-1billnm20k.auth.us-east-1.amazoncognito.com',
+  clientId: '1gvbhal6ruarketr3oc08s1vph',
   redirectUri: window.location.origin,
   scope: 'openid email profile',
   region: 'us-east-1',
-  userPoolId: 'us-east-1_59TQcgjji' // ⚠️ UPDATE: user_pool_id output
+  userPoolId: 'us-east-1_BILlNM20K'
 };
 
 // ========== OAUTH HELPER FUNCTIONS ==========
@@ -72,7 +71,7 @@ async function signIn() {
       code_challenge_method: 'S256'
     });
     
-    const authUrl = `${COGNITO_CONFIG.domain}/oauth2/authorize?${params}`;
+    const authUrl = `https://${COGNITO_CONFIG.domain}/oauth2/authorize?${params}`;
     console.log("🔑 Redirecting to Cognito login...");
     window.location.href = authUrl;
   } catch (err) {
@@ -116,7 +115,7 @@ async function handleCallback() {
   });
   
   try {
-    const response = await fetch(`${COGNITO_CONFIG.domain}/oauth2/token`, {
+    const response = await fetch(`https://${COGNITO_CONFIG.domain}/oauth2/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -330,8 +329,7 @@ console.log("✅ CloudSnap ready");
 
 // --- CORE APPLICATION UPLOAD & VIEW WORKFLOW ---
 
-// ⚠️ UPDATE: api_endpoint output from Terraform
-const API_GATEWAY_URL = "https://38klnapqpk.execute-api.us-east-1.amazonaws.com";
+const API_GATEWAY_URL = "https://cco10loarj.execute-api.us-east-1.amazonaws.com";
 
 // Get DOM elements after page loads
 const input = document.getElementById("imageInput");
@@ -435,7 +433,7 @@ async function uploadImage(file) {
       headers: {
         'Content-Type' : file.type,
         'x-amz-server-side-encryption': 'aws:kms',
-        'x-amz-server-side-encryption-aws-kms-key-id': 'arn:aws:kms:us-east-1:026344354643:key/2f2e51c1-2235-45e3-82f2-ee0e4d0c6985'
+        'x-amz-server-side-encryption-aws-kms-key-id': 'arn:aws:kms:us-east-1:337763382699:key/2a0566eb-80cb-4a5b-be8c-bdd6abfe5b03'
       },
       body: file 
     });

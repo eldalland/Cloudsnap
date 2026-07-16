@@ -11,6 +11,90 @@ provider "aws" {
   region = "us-east-1"
 }
 
+# DynamoDB table for Terraform state locking
+resource "aws_dynamodb_table" "terraform_locks" {
+  name           = "terraform-locks"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "LockID"
+
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+
+  tags = {
+    Name = "terraform-state-lock"
+  }
+}
+
+
+
+# Manage the Terraform state bucket
+resource "aws_s3_bucket" "terraform_state" {
+  bucket = "cloudsnap-terraform-state-bucket"
+
+  tags = {
+    Name = "terraform-state"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "terraform_state" {
+  bucket = aws_s3_bucket.terraform_state.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state" {
+  bucket = aws_s3_bucket.terraform_state.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = data.aws_kms_key.terraform_state.arn
+    }
+    bucket_key_enabled = true
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "terraform_state" {
+  bucket = aws_s3_bucket.terraform_state.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_policy" "terraform_state" {
+  bucket = aws_s3_bucket.terraform_state.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowGitHubActionsStateAccess"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::026344354643:role/github-actions"
+        }
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:ListBucket",
+          "s3:GetBucketVersioning"
+        ]
+        Resource = [
+          aws_s3_bucket.terraform_state.arn,
+          "${aws_s3_bucket.terraform_state.arn}/*"
+        ]
+  
+      }
+    ]
+  })
+}
+
 # Lambda execution role
 resource "aws_iam_role" "lambda_execution_role" {
   name = "cloudsnap-lambda-execution-role"
@@ -80,7 +164,7 @@ resource "aws_lambda_function" "upload_handler" {
   filename         = "backend/placeholder.zip"
   function_name    = "serverless-photo-app-lambda"
   role             = aws_iam_role.lambda_execution_role.arn
-  handler          = "image_upload.lambda_handler"
+  handler          = "index.handler"
   runtime          = "python3.11"
   timeout          = 60
   memory_size      = 256
@@ -101,9 +185,8 @@ resource "aws_lambda_function" "image_processor" {
   filename         = "backend/placeholder.zip"
   function_name    = "cloudsnap-image-processor-lambda"
   role             = aws_iam_role.lambda_execution_role.arn
-  handler          = "Image_processor.lambda_handler"
+  handler          = "index.handler"
   runtime          = "python3.11"
-  layers           = ["arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p310-Pillow:14"]
   timeout          = 120
   memory_size      = 512
 
@@ -124,7 +207,7 @@ resource "aws_lambda_function" "db_query" {
   filename         = "backend/placeholder.zip"
   function_name    = "sharing_photos_group6"
   role             = aws_iam_role.lambda_execution_role.arn
-  handler          = "db_metadata_query.lambda_handler"
+  handler          = "index.handler"
   runtime          = "python3.11"
   timeout          = 30
   memory_size      = 256
@@ -213,21 +296,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "upload_bucket" {
       kms_master_key_id = data.aws_kms_key.app.arn
     }
     bucket_key_enabled = true
-  }
-}
-
-resource "aws_s3_bucket_cors_configuration" "upload_bucket_cors" {
-  bucket = aws_s3_bucket.upload_bucket.id
-
-  cors_rule {
-    allowed_headers = [
-      "Content-Type",
-      "x-amz-server-side-encryption",
-      "x-amz-server-side-encryption-aws-kms-key-id"
-    ]
-    allowed_methods = ["GET", "PUT", "POST"]
-    allowed_origins = ["https://dq6v2g6tyalrb.cloudfront.net/"] # Restrict this to your frontend domain in production
-    max_age_seconds = 3000
   }
 }
 
@@ -462,13 +530,6 @@ resource "aws_apigatewayv2_api" "cloudsnap_api" {
   tags = {
     Name = "cloudsnap-api"
   }
-
-  cors_configuration {
-    allow_headers = ["content-type", "authorization", "x-amz-date", "x-api-key", "x-amz-security-token"]
-    allow_methods = ["POST", "OPTIONS"]
-    allow_origins = ["https://dq6v2g6tyalrb.cloudfront.net/"] 
-    max_age       = 3000
-  }
 }
 
 # Integration for upload Lambda
@@ -487,29 +548,6 @@ resource "aws_apigatewayv2_integration" "query_integration" {
   payload_format_version = "2.0"
 }
 
-resource "aws_apigatewayv2_integration" "presigned_url_integration" {
-  api_id             = aws_apigatewayv2_api.cloudsnap_api.id
-  integration_type   = "AWS_PROXY"
-  integration_uri    = aws_lambda_function.upload_handler.invoke_arn # Replace with your function's name
-  payload_format_version = "2.0"
-}
-resource "aws_apigatewayv2_route" "presigned_url_route" {
-  api_id    = aws_apigatewayv2_api.cloudsnap_api.id
-  route_key = "POST /get-presigned-url" # This defines the path and method
-  target    = "integrations/${aws_apigatewayv2_integration.presigned_url_integration.id}"
-
-  authorization_type = "JWT"
-  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
-}
-
-resource "aws_lambda_permission" "presigned_url_permission" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.upload_handler.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.cloudsnap_api.execution_arn}/*/*"
-}
-
 # API Stage (default)
 resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.cloudsnap_api.id
@@ -519,11 +557,16 @@ resource "aws_apigatewayv2_stage" "default" {
   tags = {
     Name = "default"
   }
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_logs.arn
+    format          = "$context.identity.sourceIp - - [$context.requestTime] \"$context.httpMethod $context.routeKey $context.protocol\" $context.status $context.responseLength $context.authorizer.error"
+  }
 }
 
 # Lambda permissions for API Gateway
 resource "aws_lambda_permission" "upload_api_permission" {
-  statement_id  = "AllowAPIGatewayInvokeUploadLambda"
+  statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.upload_handler.function_name
   principal     = "apigateway.amazonaws.com"
@@ -531,7 +574,7 @@ resource "aws_lambda_permission" "upload_api_permission" {
 }
 
 resource "aws_lambda_permission" "query_api_permission" {
-  statement_id  = "AllowAPIGatewayInvokeQueryLambda"
+  statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.db_query.function_name
   principal     = "apigateway.amazonaws.com"
@@ -579,43 +622,23 @@ resource "aws_cognito_user_pool" "cloudsnap" {
   tags = {
     Name = "cloudsnap-user-pool"
   }
-  lifecycle {
-    ignore_changes = [schema]
-  }
 }
 
+# Cognito User Pool Client (for web application)
 resource "aws_cognito_user_pool_client" "cloudsnap_web" {
   name                = "cloudsnap-web-client"
   user_pool_id        = aws_cognito_user_pool.cloudsnap.id
   generate_secret     = false
   explicit_auth_flows = ["ALLOW_USER_PASSWORD_AUTH", "ALLOW_REFRESH_TOKEN_AUTH"]
 
-  allowed_oauth_flows                  = ["code", "implicit"]
-  allowed_oauth_scopes                 = ["email", "openid", "profile"]
+  allowed_oauth_flows            = ["code", "implicit"]
+  allowed_oauth_scopes           = ["email", "openid", "profile"]
   allowed_oauth_flows_user_pool_client = true
-
-  callback_urls = [
-    "https://${aws_cloudfront_distribution.static_site.domain_name}",
-    "https://${aws_cloudfront_distribution.static_site.domain_name}/"
-  ]
-  logout_urls   = [
-    "https://${aws_cloudfront_distribution.static_site.domain_name}",
-    "https://${aws_cloudfront_distribution.static_site.domain_name}/"
-  ]
+  
+  callback_urls = ["https://dq6v2g6tyalrb.cloudfront.net/"]
+  logout_urls   = ["https://dq6v2g6tyalrb.cloudfront.net/"]
 
   supported_identity_providers = ["COGNITO"]
-
-  # Added these mandatory units to resolve the 400 error
-  # while keeping your original resource identifier names.
-  access_token_validity  = 60
-  id_token_validity      = 60
-  refresh_token_validity = 30
-
-  token_validity_units {
-    access_token  = "minutes"
-    id_token      = "minutes"
-    refresh_token = "days"
-  }
 }
 
 # Cognito Identity Pool
