@@ -30,7 +30,7 @@ resource "aws_dynamodb_table" "terraform_locks" {
 }
 
 # Manage the Terraform state bucket
-resource "aws_s3_# Static site bucket (for frontend)_state" {
+resource "aws_s3_bucket" "terraform_state" {
   bucket = "cloudsnap-terraform-state-bucket"
 
   tags = {
@@ -633,23 +633,6 @@ resource "aws_api_gateway_account" "api_account" {
   cloudwatch_role_arn = aws_iam_role.apigateway_cloudwatch_role.arn
 }
 
-# Lambda permissions for API Gateway
-resource "aws_lambda_permission" "upload_api_permission" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.upload_handler.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.cloudsnap_api.execution_arn}/*/*"
-}
-
-resource "aws_lambda_permission" "query_api_permission" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.db_query.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.cloudsnap_api.execution_arn}/*/*"
-}
-
 # ========== AUTHENTICATION - COGNITO ==========
 
 # Cognito User Pool
@@ -792,16 +775,6 @@ resource "aws_apigatewayv2_authorizer" "cognito" {
     audience       = [aws_cognito_user_pool_client.cloudsnap_web.id]
     issuer         = "https://cognito-idp.us-east-1.amazonaws.com/${aws_cognito_user_pool.cloudsnap.id}"
   }
-}
-
-resource "aws_apigatewayv2_route" "get_presigned_url_route" {
-  api_id    = aws_apigatewayv2_api.cloudsnap_api.id
-  route_key = "POST /get-presigned-url"
-  target    = "integrations/${aws_apigatewayv2_lambda_integration.my_lambda_integration.id}"
-  
-  # Ensure the authorizer is attached here
-  authorization_type = "JWT"
-  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 # Update the upload route to use the authorizer
