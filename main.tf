@@ -217,7 +217,7 @@ resource "aws_lambda_function" "image_processor" {
 resource "aws_lambda_function" "db_query" {
   filename         = "backend/placeholder.zip"
   function_name    = "sharing_photos_group6"
-  role             = aws_iam_role.lambda_execution_role.arn
+  role             = aws_iam_role.lambda_execution_role.arn 
   handler          = "db_metadata_query.lambda_handler"
   runtime          = "python3.11"
   timeout          = 30
@@ -367,7 +367,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "processed_bucket"
   }
 }
 
-# DynamoDB table for image metadata
 resource "aws_dynamodb_table" "image_metadata" {
   name           = "cloudsnap-image-metadata"
   billing_mode   = "PAY_PER_REQUEST"
@@ -383,14 +382,21 @@ resource "aws_dynamodb_table" "image_metadata" {
     type = "S"
   }
 
+  global_secondary_index {
+    name               = "user_id_index"
+    hash_key           = "user_id"
+    projection_type    = "ALL"
+  }
+
   server_side_encryption {
-    enabled     = true
+    enabled       = true
     kms_key_arn = data.aws_kms_key.app.arn
   }
 
   point_in_time_recovery {
-    enabled = true
+    enabled = false
   }
+}
 
   # Global Secondary Index for user_id searches
   global_secondary_index {
