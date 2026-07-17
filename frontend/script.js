@@ -1,11 +1,11 @@
 // ========== COGNITO OAUTH CONFIGURATION ==========
 const COGNITO_CONFIG = {
   domain: 'cloudsnap.auth.us-east-1.amazoncognito.com',
-  clientId: '7gjtvhdia78qoo2g83lvdoqi7v',
+  clientId: '4e4oeschtn66fc5m1im25rtlk4',
   redirectUri: window.location.origin + "/",
   scope: 'openid email profile',
   region: 'us-east-1',
-  userPoolId: 'us-east-1_EpPHJV9AQ'
+  userPoolId: 'us-east-1_JBYYTrEtp'
 };
 
 // ========== OAUTH HELPER FUNCTIONS ==========
