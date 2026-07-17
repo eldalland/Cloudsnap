@@ -8,5 +8,6 @@ backend/index.py
 backend/*.zip
 backend/package/
 python/
+package/
 import_resources.log
 import_resources_fixed.log
