@@ -285,7 +285,7 @@ resource "aws_s3_bucket_versioning" "upload_bucket" {
   bucket = aws_s3_bucket.upload_bucket.id
 
   versioning_configuration {
-    status = "Enabled"
+    status = "Disabled"
   }
 }
 
@@ -326,6 +326,16 @@ resource "aws_s3_bucket_cors_configuration" "bucket_cors" {
     allowed_origins = ["https://dq6v2g6tyalrb.cloudfront.net"]
     expose_headers  = ["ETag"]
     max_age_seconds = 3000
+  }
+}
+
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = "cloudsnap-uploaded" # Ensure this matches your actual bucket name
+
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.image_processor.arn
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "uploads/" # Optional: narrows it to the uploads folder
   }
 }
 
@@ -666,6 +676,14 @@ resource "aws_lambda_permission" "api_gateway_db_query" {
   function_name = aws_lambda_function.db_query.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.cloudsnap_api.execution_arn}/*/*"
+}
+
+resource "aws_lambda_permission" "allow_s3_to_invoke_processor" {
+  statement_id  = "AllowExecutionFromS3"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.image_processor.function_name
+  principal     = "s3.amazonaws.com"
+  source_arn    = "arn:aws:s3:::cloudsnap-uploaded" # Ensure this matches your bucket ARN
 }
 
 # Cognito User Pool
