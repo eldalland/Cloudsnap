@@ -26,8 +26,10 @@ jobs:
       - name: Create Lambda Deployment Packages
         run: |
           cd backend
+          python3 -m pip install Pillow -t package/
+          cp image_processor.py package/
+          cd package && zip -r ../deployment_package_image.zip . && cd ..
           zip -r deployment_package.zip image_upload.py
-          zip -r deployment_package_image.zip image_processor.py
           zip -r deployment_package_db_stream.zip db_metadata_query.py
           cd ..
 

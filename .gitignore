@@ -5,5 +5,8 @@ deploy-V1.yml
 *.tfstate
 *.tfstate.backup
 backend/index.py
+backend/*.zip
+backend/package/
+python/
 import_resources.log
 import_resources_fixed.log

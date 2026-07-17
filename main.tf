@@ -201,10 +201,6 @@ resource "aws_lambda_function" "image_processor" {
   timeout          = 120
   memory_size      = 512
 
- layers = [
-    "arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p311-Pillow:12"
-  ] 
-
   environment {
     variables = {
       PROCESSED_BUCKET = aws_s3_bucket.processed_bucket.id
