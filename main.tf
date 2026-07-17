@@ -310,6 +310,25 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "upload_bucket" {
   }
 }
 
+resource "aws_s3_bucket_cors_configuration" "bucket_cors" {
+  bucket = aws_s3_bucket.cloudsnap_uploaded.id 
+
+  cors_rule {
+    allowed_headers = [
+      "Content-Type",
+      "x-amz-server-side-encryption",
+      "x-amz-server-side-encryption-aws-kms-key-id",
+      "x-amz-date",
+      "x-amz-content-sha256",
+      "Authorization"
+    ]
+    allowed_methods = ["PUT", "POST", "GET", "HEAD"]
+    allowed_origins = ["https://dq6v2g6tyalrb.cloudfront.net"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+}
+
 # Processed/resized bucket (for processed images)
 resource "aws_s3_bucket" "processed_bucket" {
   bucket = "cloudsnap-resized"
