@@ -10,7 +10,7 @@ TABLE_NAME = os.environ.get('DYNAMODB_TABLE_NAME', 'cloudsnap')
 table = dynamodb.Table(TABLE_NAME)
 
 # Define your asset CloudFront distribution domain here
-CLOUDFRONT_ASSET_DOMAIN = "https://d15kfhgeq0idge.cloudfront.net"
+CLOUDFRONT_ASSET_DOMAIN = "https://dq6v2g6tyalrb.cloudfront.net/"
 
 def lambda_handler(event, context):
     print(f"Received event: {json.dumps(event)}")
@@ -20,7 +20,7 @@ def lambda_handler(event, context):
         return {
             "statusCode": 200,
             "headers": {
-                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Origin": "https://dq6v2g6tyalrb.cloudfront.net/",
                 "Access-Control-Allow-Headers": "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token",
                 "Access-Control-Allow-Methods": "GET,OPTIONS",
                 "Access-Control-Max-Age": "86400"
@@ -105,7 +105,7 @@ def create_response(status_code, body):
         "statusCode": status_code,
         "headers": {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": "https://dq6v2g6tyalrb.cloudfront.net/",
             "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
             "Access-Control-Allow-Methods": "GET,OPTIONS"
         },

@@ -662,6 +662,14 @@ resource "aws_lambda_permission" "query_api_permission" {
   source_arn    = "${aws_apigatewayv2_api.cloudsnap_api.execution_arn}/*/*"
 }
 
+resource "aws_lambda_permission" "api_gateway_db_query" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.db_query.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.cloudsnap_api.execution_arn}/*/*"
+}
+
 # Cognito User Pool
 resource "aws_cognito_user_pool" "cloudsnap" {
   name = "cloudsnap-user-pool"
@@ -826,13 +834,19 @@ resource "aws_apigatewayv2_route" "upload_route" {
   authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
-# Update the query route to use the authorizer
-resource "aws_apigatewayv2_route" "query_route" {
-  api_id       = aws_apigatewayv2_api.cloudsnap_api.id
-  route_key    = "GET /images"
-  target       = "integrations/${aws_apigatewayv2_integration.query_integration.id}"
+resource "aws_apigatewayv2_route" "get_processed_images_route" {
+  api_id             = aws_apigatewayv2_api.cloudsnap_api.id
+  route_key          = "GET /get-processed-images"
+  target             = "integrations/${aws_apigatewayv2_integration.db_query_integration.id}"
   authorization_type = "JWT"
   authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
+}
+
+resource "aws_apigatewayv2_integration" "db_query_integration" {
+  api_id                 = aws_apigatewayv2_api.cloudsnap_api.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.db_query.invoke_arn 
+  payload_format_version = "2.0"
 }
 
 # Outputs

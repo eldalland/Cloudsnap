@@ -10,7 +10,7 @@ s3_client = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')
 
 # CloudFront distribution for serving processed images
-CLOUDFRONT_ASSET_DOMAIN = "https://d15kfhgeq0idge.cloudfront.net"
+CLOUDFRONT_ASSET_DOMAIN = "https://dq6v2g6tyalrb.cloudfront.net/"
 
 RESIZE_CONFIGS = {
     "facebook": (1200, 630),
