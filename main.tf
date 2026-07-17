@@ -631,6 +631,13 @@ resource "aws_lambda_permission" "query_api_permission" {
 resource "aws_cognito_user_pool" "cloudsnap" {
   name = "cloudsnap-user-pool"
 
+  schema {
+    attribute_data_type      = "String"
+    name                     = "preferred_username"
+    required                 = true
+    mutable                  = true
+  }
+
   # Password policy
   password_policy {
     minimum_length    = 8
