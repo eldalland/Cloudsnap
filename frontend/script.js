@@ -171,7 +171,7 @@ function getCurrentUser() {
     }
     
     return {
-      username: payload['cognito:username'] || payload.email || 'User',
+      username: payload['preferred_username'] || payload.email || 'User',
       email: payload.email,
       sub: payload.sub
     };
