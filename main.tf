@@ -285,7 +285,7 @@ resource "aws_s3_bucket_versioning" "upload_bucket" {
   bucket = aws_s3_bucket.upload_bucket.id
 
   versioning_configuration {
-    status = "Disabled"
+    status = "Suspended"
   }
 }
 
