@@ -7,7 +7,8 @@ from botocore.config import Config
 def lambda_handler(event, context):
     print(f"Received event: {json.dumps(event)}")
     
-    # Handle OPTIONS preflight requests for CORS (NO AUTH REQUIRED)
+    # Handle OPTIONS preflight requests for CORS (NO AUTH REQUIRED)/*
+    """
     if event.get('httpMethod') == 'OPTIONS' or event.get('requestContext', {}).get('http', {}).get('method') == 'OPTIONS':
         return {
             "statusCode": 200,
@@ -19,7 +20,7 @@ def lambda_handler(event, context):
             },
             "body": json.dumps({"message": "CORS preflight"})
         }
-    
+    """
     # 1. Grab the bucket name from environment variables
     bucket_name = os.environ.get('USER_UPLOAD_BUCKET')
     
