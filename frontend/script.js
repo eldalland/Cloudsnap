@@ -329,7 +329,7 @@ console.log("✅ CloudSnap ready");
 
 // --- CORE APPLICATION UPLOAD & VIEW WORKFLOW ---
 
-const API_GATEWAY_URL = "https://cco10loarj.execute-api.us-east-1.amazonaws.com";
+const API_GATEWAY_URL = "https://38klnapqpk.execute-api.us-east-1.amazonaws.com";
 
 // Get DOM elements after page loads
 const input = document.getElementById("imageInput");
