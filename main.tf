@@ -311,7 +311,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "upload_bucket" {
 }
 
 resource "aws_s3_bucket_cors_configuration" "bucket_cors" {
-  bucket = aws_s3_bucket.cloudsnap_uploaded.id 
+  bucket = aws_s3_bucket.upload_bucket.id 
 
   cors_rule {
     allowed_headers = [
