@@ -528,6 +528,13 @@ resource "aws_s3_bucket_policy" "processed_bucket" {
 resource "aws_apigatewayv2_api" "cloudsnap_api" {
   name          = "cloudsnap-api"
   protocol_type = "HTTP"
+
+  cors_configuration {
+    allow_headers = ["Content-Type", "Authorization", "X-Amz-Date", "X-Api-Key", "X-Amz-Security-Token"]
+    allow_methods = ["GET", "POST", "OPTIONS", "PUT", "DELETE"]
+    allow_origins = ["https://${aws_cloudfront_distribution.static_site.domain_name}"]
+    max_age       = 300
+  }
   
   tags = {
     Name = "cloudsnap-api"
