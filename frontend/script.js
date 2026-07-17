@@ -1,7 +1,7 @@
 // ========== COGNITO OAUTH CONFIGURATION ==========
 const COGNITO_CONFIG = {
   domain: 'cloudsnap.auth.us-east-1.amazoncognito.com',
-  clientId: '7gjtvhdia78qoo2g83lvdoqi7v"',
+  clientId: '7gjtvhdia78qoo2g83lvdoqi7v',
   redirectUri: window.location.origin,
   scope: 'openid email profile',
   region: 'us-east-1',
