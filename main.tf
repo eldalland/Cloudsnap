@@ -681,9 +681,9 @@ resource "aws_lambda_permission" "api_gateway_db_query" {
 resource "aws_lambda_permission" "allow_s3_to_invoke_processor" {
   statement_id  = "AllowExecutionFromS3"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.image_processor.function_name
+  function_name = aws_lambda_function.image_processor.function_name # Replace with your function name/resource
   principal     = "s3.amazonaws.com"
-  source_arn    = "arn:aws:s3:::cloudsnap-uploaded" # Ensure this matches your bucket ARN
+  source_arn    = aws_s3_bucket.cloudsnap_uploaded.arn
 }
 
 # Cognito User Pool
