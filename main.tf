@@ -175,7 +175,7 @@ resource "aws_lambda_function" "upload_handler" {
   filename         = "backend/placeholder.zip"
   function_name    = "serverless-photo-app-lambda"
   role             = aws_iam_role.lambda_execution_role.arn
-  handler          = "index.handler"
+  handler          = "image_upload.lambda_handler"
   runtime          = "python3.11"
   timeout          = 60
   memory_size      = 256
@@ -196,7 +196,7 @@ resource "aws_lambda_function" "image_processor" {
   filename         = "backend/placeholder.zip"
   function_name    = "cloudsnap-image-processor-lambda"
   role             = aws_iam_role.lambda_execution_role.arn
-  handler          = "index.handler"
+  handler          = "image_processor.lambda_handler"
   runtime          = "python3.11"
   timeout          = 120
   memory_size      = 512
@@ -218,7 +218,7 @@ resource "aws_lambda_function" "db_query" {
   filename         = "backend/placeholder.zip"
   function_name    = "sharing_photos_group6"
   role             = aws_iam_role.lambda_execution_role.arn
-  handler          = "index.handler"
+  handler          = "db_metadata_query.lambda_handler"
   runtime          = "python3.11"
   timeout          = 30
   memory_size      = 256
