@@ -186,6 +186,10 @@ function getIdToken() {
   return localStorage.getItem('id_token');
 }
 
+function getAccessToken() {
+  return localStorage.getItem('access_token');
+}
+
 // Sign out
 function signOut() {
   clearTokens();
@@ -406,7 +410,7 @@ async function uploadImage(file) {
   if (!file) return alert('Please select a file first.');
 
   try {
-    const token = await getCognitoToken();
+    const token = getAccessToken();
     if (!token) return;
 
     const apiResponse = await fetch(`${API_GATEWAY_URL}/get-presigned-url`, {
