@@ -383,30 +383,22 @@ resource "aws_dynamodb_table" "image_metadata" {
   }
 
   global_secondary_index {
-    name               = "user_id_index"
-    hash_key           = "user_id"
-    projection_type    = "ALL"
-  }
-
-  server_side_encryption {
-    enabled       = true
-    kms_key_arn = data.aws_kms_key.app.arn
-  }
-
-  point_in_time_recovery {
-    enabled = false
-  }
-}
-
-  # Global Secondary Index for user_id searches
-  global_secondary_index {
-    name            = "user_id-index"
+    name            = "user_id_index"
     hash_key        = "user_id"
     projection_type = "ALL"
   }
 
+  server_side_encryption {
+    enabled     = true
+    kms_key_arn = data.aws_kms_key.app.arn
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
   tags = {
-    Name = "image-metadata"
+    Environment = "production"
   }
 }
 
