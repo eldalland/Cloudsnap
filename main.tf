@@ -683,7 +683,7 @@ resource "aws_lambda_permission" "allow_s3_to_invoke_processor" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.image_processor.function_name # Replace with your function name/resource
   principal     = "s3.amazonaws.com"
-  source_arn    = aws_s3_bucket.cloudsnap_uploaded.arn
+  source_arn    = aws_s3_bucket.upload_bucket.arn
 }
 
 # Cognito User Pool
