@@ -186,6 +186,8 @@ resource "aws_lambda_function" "upload_handler" {
     }
   }
 
+  reserved_concurrent_executions = 5
+
   tags = {
     Name = "upload-handler"
   }
@@ -208,6 +210,8 @@ resource "aws_lambda_function" "image_processor" {
     }
   }
 
+  reserved_concurrent_executions = 5
+
   tags = {
     Name = "image-processor"
   }
@@ -228,6 +232,8 @@ resource "aws_lambda_function" "db_query" {
       DYNAMODB_TABLE_NAME = aws_dynamodb_table.image_metadata.name
     }
   }
+
+  reserved_concurrent_executions = 5
 
   tags = {
     Name = "db-query"
@@ -863,6 +869,36 @@ resource "aws_apigatewayv2_integration" "db_query_integration" {
   integration_type       = "AWS_PROXY"
   integration_uri        = aws_lambda_function.db_query.invoke_arn 
   payload_format_version = "2.0"
+}
+
+# Create an SNS Topic for notifications
+resource "aws_sns_topic" "api_alerts" {
+  name = "cloudsnap-api-alerts"
+}
+
+# Subscribe your email to the SNS Topic
+resource "aws_sns_topic_subscription" "email_alert" {
+  topic_arn = aws_sns_topic.api_alerts.arn
+  protocol  = "email"
+  endpoint  = "eldalland@gmail.com" # Replace with your email
+}
+
+# CloudWatch Alarm for API Request Count
+resource "aws_cloudwatch_metric_alarm" "api_request_flood" {
+  alarm_name          = "cloudsnap-api-request-flood"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "1"
+  metric_name         = "Count"
+  namespace           = "AWS/ApiGateway"
+  period              = "300" # 5-minute evaluation period
+  statistic           = "Sum"
+  threshold           = 50 # Adjust this based on your expected traffic
+  alarm_description   = "Triggered if API requests exceed 50 in 5 minutes"
+  alarm_actions       = [aws_sns_topic.api_alerts.arn]
+  
+  dimensions = {
+   ApiId = aws_apigatewayv2_api.cloudsnap_api.id" # Replace with your actual API Gateway name
+  }
 }
 
 # Outputs
