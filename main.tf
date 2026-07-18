@@ -186,7 +186,7 @@ resource "aws_lambda_function" "upload_handler" {
     }
   }
 
-  reserved_concurrent_executions = 5
+  reserved_concurrent_executions = 10
 
   tags = {
     Name = "upload-handler"
@@ -210,7 +210,7 @@ resource "aws_lambda_function" "image_processor" {
     }
   }
 
-  reserved_concurrent_executions = 5
+  reserved_concurrent_executions = 10
 
   tags = {
     Name = "image-processor"
@@ -233,7 +233,7 @@ resource "aws_lambda_function" "db_query" {
     }
   }
 
-  reserved_concurrent_executions = 5
+  reserved_concurrent_executions = 10
 
   tags = {
     Name = "db-query"
