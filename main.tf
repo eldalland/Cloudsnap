@@ -897,7 +897,7 @@ resource "aws_cloudwatch_metric_alarm" "api_request_flood" {
   alarm_actions       = [aws_sns_topic.api_alerts.arn]
   
   dimensions = {
-   ApiId = aws_apigatewayv2_api.cloudsnap_api.id" # Replace with your actual API Gateway name
+   ApiId = "aws_apigatewayv2_api.cloudsnap_api.id" # Replace with your actual API Gateway name
   }
 }
 
