@@ -2,7 +2,7 @@ Serverless Photo Sharing and Multi-Platform Image Optimization System
 
 A serveless photo sharing app hosted on AWS where users can login to upload their images, which will be resized for
 facebook, instagram, linkedin, and general website format, and then returned to the browser for download in real-time.
-Implemented with AWS Actions + Githubs Actions to develop AWS hosted frontend+backend code in an external ci/cd environment.
+Implemented with Terraform, AWS Actions + Githubs Actions to develop AWS hosted resources as code (IaC) in an external ci/cd environment.
 
 Created as a Capstone Project for NPower's Solutions Architect Course
 
@@ -70,12 +70,13 @@ Security:
   - KMS key for terraform state file encryption
   - IAM roles with least privilege (Lambda, Cognito)
   - IAM policies for S3, DynamoDB, and CloudWatch Logs access
+  - Cloudwatch alarm + SNS Topic for email alerts based on API usage
 
 ================================================================================
 AWS Services Used:
 ================================================================================
 
-Cognito + OAuth
+Cognito 
 Lambda
 API Gateway
 S3
@@ -83,5 +84,7 @@ CloudFront
 DynamoDB
 KMS
 IAM
+SNS
+Cloudwatch
 Terraform
 AWS GitHub Actions

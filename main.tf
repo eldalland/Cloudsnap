@@ -1,3 +1,4 @@
+# Setting up terraform config
 terraform {
   backend "s3" {
     bucket     = "cloudsnap-terraform-state-bucket"
@@ -97,6 +98,8 @@ resource "aws_s3_bucket_policy" "terraform_state" {
   })
 }
 
+-----Project Related Resources-----
+
 # Lambda execution role
 resource "aws_iam_role" "lambda_execution_role" {
   name = "cloudsnap-lambda-execution-role"
@@ -186,7 +189,7 @@ resource "aws_lambda_function" "upload_handler" {
     }
   }
 
-  reserved_concurrent_executions = 10
+  #reserved_concurrent_executions = 10 set to 10 at free tier
 
   tags = {
     Name = "upload-handler"
@@ -210,7 +213,7 @@ resource "aws_lambda_function" "image_processor" {
     }
   }
 
-  reserved_concurrent_executions = 10
+  #reserved_concurrent_executions = 10 set to 10 at free tier
 
   tags = {
     Name = "image-processor"
@@ -233,7 +236,7 @@ resource "aws_lambda_function" "db_query" {
     }
   }
 
-  reserved_concurrent_executions = 10
+  #reserved_concurrent_executions = 10 set to 10 at free tier
 
   tags = {
     Name = "db-query"
@@ -654,7 +657,7 @@ resource "aws_iam_role_policy" "apigateway_cloudwatch_policy" {
   })
 }
 
-#Tell AWS to use this role for ALL API Gateway logging in your account
+#role for ALL API Gateway logging in AWS account
 resource "aws_api_gateway_account" "api_account" {
   cloudwatch_role_arn = aws_iam_role.apigateway_cloudwatch_role.arn
 }
@@ -832,7 +835,7 @@ resource "aws_apigatewayv2_authorizer" "cognito" {
     issuer         = "https://cognito-idp.us-east-1.amazonaws.com/${aws_cognito_user_pool.cloudsnap.id}"
   }
 }
-
+#API Routing + integrations for cognito
 resource "aws_apigatewayv2_integration" "upload_handler_integration" {
   api_id                 = aws_apigatewayv2_api.cloudsnap_api.id
   integration_type       = "AWS_PROXY"
