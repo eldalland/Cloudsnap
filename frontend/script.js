@@ -72,10 +72,12 @@ async function signIn() {
     });
     
     const authUrl = `https://${COGNITO_CONFIG.domain}/oauth2/authorize?${params}`;
-    console.log("🔑 Redirecting to Cognito login...");
+    // 🔧 DEBUG: Commented out - Redirecting to login
+    // console.log("🔑 Redirecting to Cognito login...");
     window.location.href = authUrl;
   } catch (err) {
-    console.error("❌ Login error:", err);
+    // 🔧 DEBUG: Commented out
+    //console.error("❌ Login error:", err);
   }
 }
 
@@ -87,7 +89,8 @@ async function handleCallback() {
   const error = urlParams.get('error');
   
   if (error) {
-    console.error("❌ OAuth error:", error, urlParams.get('error_description'));
+    // 🔧 DEBUG: Commented out
+    //console.error("❌ OAuth error:", error, urlParams.get('error_description'));
     return false;
   }
   
@@ -98,11 +101,13 @@ async function handleCallback() {
   // Verify state
   const savedState = sessionStorage.getItem('oauth_state');
   if (state !== savedState) {
-    console.error("❌ State mismatch - possible CSRF attack");
+    // 🔧 DEBUG: Commented out
+    //console.error("❌ State mismatch - possible CSRF attack");
     return false;
   }
   
-  console.log("✅ OAuth callback received, exchanging code for tokens...");
+  // 🔧 DEBUG: Commented out - OAuth callback info
+  // console.log("✅ OAuth callback received, exchanging code for tokens...");
   
   // Exchange code for tokens
   const verifier = sessionStorage.getItem('pkce_verifier');
@@ -125,12 +130,14 @@ async function handleCallback() {
     
     if (!response.ok) {
       const errorData = await response.text();
-      console.error("❌ Token exchange failed:", errorData);
+      // 🔧 DEBUG: Commented out
+      //console.error("❌ Token exchange failed:", errorData);
       return false;
     }
     
     const tokens = await response.json();
-    console.log("✅ Tokens received");
+    // 🔧 DEBUG: Commented out - Tokens received info
+    // console.log("✅ Tokens received");
     
     // Store tokens
     localStorage.setItem('id_token', tokens.id_token);
@@ -149,7 +156,8 @@ async function handleCallback() {
     
     return true;
   } catch (err) {
-    console.error("❌ Token exchange error:", err);
+    // 🔧 DEBUG: Commented out
+    //console.error("❌ Token exchange error:", err);
     return false;
   }
 }
@@ -165,7 +173,8 @@ function getCurrentUser() {
     
     // Check if token is expired
     if (payload.exp * 1000 < Date.now()) {
-      console.log("⚠️ Token expired");
+      // 🔧 DEBUG: Commented out - Token expired info
+      // console.log("⚠️ Token expired");
       clearTokens();
       return null;
     }
@@ -176,7 +185,8 @@ function getCurrentUser() {
       sub: payload.sub
     };
   } catch (err) {
-    console.error("❌ Error decoding token:", err);
+    // 🔧 DEBUG: Commented out
+    //console.error("❌ Error decoding token:", err);
     return null;
   }
 }
@@ -201,7 +211,8 @@ function signOut() {
   });
   
   const logoutUrl = `https://${COGNITO_CONFIG.domain}/logout?${logoutParams}`;
-  console.log("🚪 Logging out...");
+  // 🔧 DEBUG: Commented out - Logging out info
+  // console.log("🚪 Logging out...");
   window.location.href = logoutUrl;
 }
 
@@ -212,7 +223,8 @@ function clearTokens() {
   localStorage.removeItem('refresh_token');
 }
 
-console.log("✅ Cognito OAuth initialized");
+// 🔧 DEBUG: Commented out - Initialization info
+// console.log("✅ Cognito OAuth initialized");
 
 // ========== UI FUNCTIONS ==========
 
@@ -220,7 +232,8 @@ console.log("✅ Cognito OAuth initialized");
 async function getCognitoToken() {
   const idToken = getIdToken();
   if (!idToken) {
-    alert("Session expired. Please log in.");
+    // ⚠️ POPUP: Commented out - Session expired alert
+    // alert("Session expired. Please log in.");
     return null;
   }
   
@@ -256,7 +269,8 @@ function showLoggedInUI(username) {
     greeting.textContent = `Hello, ${username}`;
     greeting.classList.remove("hidden");
   }
-  console.log("✅ Logged in UI shown for:", username);
+  // 🔧 DEBUG: Commented out - Login UI info
+  // console.log("✅ Logged in UI shown for:", username);
 }
 
 // Show UI for unauthenticated user
@@ -273,7 +287,8 @@ function showLoggedOutUI() {
     greeting.textContent = "";
     greeting.classList.add("hidden");
   }
-  console.log("ℹ️ Logged out UI shown");
+  // 🔧 DEBUG: Commented out - Logout UI info
+  // console.log("ℹ️ Logged out UI shown");
 }
 
 // Check current user session
@@ -282,16 +297,19 @@ async function checkUserSession() {
   const callbackHandled = await handleCallback();
   
   if (callbackHandled) {
-    console.log("✅ OAuth callback processed");
+    // 🔧 DEBUG: Commented out - OAuth callback processed info
+    // console.log("✅ OAuth callback processed");
   }
   
   // Now check if user is logged in
   const user = getCurrentUser();
   if (user) {
-    console.log("✅ Current user:", user.username);
+    // 🔧 DEBUG: Commented out - Current user info
+    // console.log("✅ Current user:", user.username);
     showLoggedInUI(user.username);
   } else {
-    console.log("ℹ️ No user signed in");
+    // 🔧 DEBUG: Commented out - No user signed in info
+    // console.log("ℹ️ No user signed in");
     showLoggedOutUI();
   }
 }
@@ -304,7 +322,8 @@ const logoutBtn = document.getElementById("logoutBtn");
 if (loginBtn) {
   loginBtn.addEventListener("click", async (e) => {
     e.preventDefault();
-    console.log("🔑 Login button clicked");
+    // 🔧 DEBUG: Commented out
+    //console.log("🔑 Login button clicked");
     await signIn();
   });
 }
@@ -312,7 +331,8 @@ if (loginBtn) {
 if (loginBtnNav) {
   loginBtnNav.addEventListener("click", async (e) => {
     e.preventDefault();
-    console.log("🔑 Login button clicked");
+    // 🔧 DEBUG: Commented out
+    //console.log("🔑 Login button clicked");
     await signIn();
   });
 }
@@ -320,14 +340,16 @@ if (loginBtnNav) {
 if (logoutBtn) {
   logoutBtn.addEventListener("click", (e) => {
     e.preventDefault();
-    console.log("🚪 Logout button clicked");
+    // 🔧 DEBUG: Commented out
+    //console.log("🚪 Logout button clicked");
     signOut();
   });
 }
 
 // Initialize on page load
 await checkUserSession();
-console.log("✅ CloudSnap ready");
+// 🔧 DEBUG: Commented out - No user signed in info
+//console.log("✅ CloudSnap ready");
 
 
 
@@ -386,7 +408,8 @@ if (uploadBtn) {
     const file = input?.files?.[0];
 
     if (!file) {
-      alert('Please select an image to upload.');
+      // ⚠️ POPUP: Commented out - File selection alert
+      // alert('Please select an image to upload.');
       return;
     }
 
@@ -407,7 +430,11 @@ if (uploadBtn) {
 }
 
 async function uploadImage(file) {
-  if (!file) return alert('Please select a file first.');
+  if (!file) {
+    // ⚠️ POPUP: Commented out - File required alert
+    // return alert('Please select a file first.');
+    return;
+  }
 
   try {
     const token = getAccessToken();
@@ -443,22 +470,29 @@ async function uploadImage(file) {
     });
 
     if (s3Upload.ok) {
-      alert('Image successfully uploaded to S3!');
+      // ⚠️ POPUP: Commented out - Upload success alert
+      // alert('Image successfully uploaded to S3!');
+      //console.log('Image successfully uploaded to S3!');
     } else {
       const errorText = await s3Upload.text();
-      console.error("S3 Upload Error:", errorText);
-      alert(`S3 Upload failed with status: ${s3Upload.status}. Check console for details!`);
+      // 🔧 DEBUG: Commented out
+      //console.error("S3 Upload Error:", errorText);
+      // ⚠️ POPUP: Commented out - Upload error alert
+      // alert(`S3 Upload failed with status: ${s3Upload.status}. Check console for details!`);
     }
 
   } catch (error) {
-    console.error("Upload error:", error);
-    alert(`An error occurred: ${error.message}`);
+    // 🔧 DEBUG: Commented out
+    //console.error("Upload error:", error);
+    // ⚠️ POPUP: Commented out - Catch error alert
+    // alert(`An error occurred: ${error.message}`);
   }
 }
 
 async function retrieveProcessedImages() {
   try {
-    console.log("Retrieving processed images...");
+    // 🔧 DEBUG: Commented out 
+    //console.log("Retrieving processed images...");
     
     const token = await getCognitoToken();
     if (!token) return;
@@ -476,17 +510,22 @@ async function retrieveProcessedImages() {
     }
     
     const data = await response.json();
-    console.log("Retrieved images:", data);
+    // 🔧 DEBUG: Commented out
+    //console.log("Retrieved images:", data);
     
     if (data.images && data.images.length > 0) {
       displayDownloadButtons(data.images);
     } else {
-      alert('No processed images found yet. Please wait a moment and try again.');
+      // ⚠️ POPUP: Commented out - No images alert
+      // alert('No processed images found yet. Please wait a moment and try again.');
+      //console.log('No processed images found yet. Please wait a moment and try again.');
     }
     
   } catch (error) {
-    console.error("Error retrieving images:", error);
-    alert('Error retrieving images. Check console for details.');
+    // 🔧 DEBUG: Commented out
+    //console.error("Error retrieving images:", error);
+    // ⚠️ POPUP: Commented out - Retrieval error alert
+    // alert('Error retrieving images. Check console for details.');
   }
 }
 

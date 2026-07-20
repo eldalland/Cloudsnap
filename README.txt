@@ -88,3 +88,5 @@ SNS
 Cloudwatch
 Terraform
 AWS GitHub Actions
+
+AI was used in this project laregely for debugging and providing formatting for JWT and OAuth which we were unfamiliar with.
