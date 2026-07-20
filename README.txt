@@ -72,6 +72,11 @@ Security:
   - IAM policies for S3, DynamoDB, and CloudWatch Logs access
   - Cloudwatch alarm + SNS Topic for email alerts based on API usage
 
+CI/CD:
+ - Terraform
+ - AWS Actions
+ - GitHub Actions
+
 ================================================================================
 AWS Services Used:
 ================================================================================
