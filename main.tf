@@ -98,7 +98,7 @@ resource "aws_s3_bucket_policy" "terraform_state" {
   })
 }
 
------Project Related Resources-----
+#-----Project Related Resources-----
 
 # Lambda execution role
 resource "aws_iam_role" "lambda_execution_role" {
